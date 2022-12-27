@@ -1,6 +1,7 @@
 wiki
 gen
 build
+xpi
 *~
 *.swp
 *.debug
