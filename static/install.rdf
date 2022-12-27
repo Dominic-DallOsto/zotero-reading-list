@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+	<Description about="urn:mozilla:install-manifest">
+		<em:id>zotero-reading-list@dom.org</em:id>
+		<em:name>Zotero Reading List</em:name>
+		<em:description>Keep track of the read status of items in Zotero</em:description>
+		<em:version>0.0.1</em:version>
+		<em:creator>Dominic Dall'Osto</em:creator>
+		<em:homepageURL>https://github.com/Dominic-DallOsto/zotero-reading-list#readme</em:homepageURL>
+		<em:updateURL>https://raw.githubusercontent.com/Dominic-DallOsto/zotero-reading-list/master/update.rdf</em:updateURL>
+		<em:multiprocessCompatible>true</em:multiprocessCompatible>
+		<em:type>2</em:type> <!-- type=extension -->
+		<em:bootstrap>true</em:bootstrap>
+
+		<em:localized>
+			<Description>
+				<em:locale>en-US</em:locale>
+				<em:name>Zotero Reading List</em:name>
+				<em:description>Keep track of the read status of items in Zotero</em:description>
+				<em:creator>Dominic Dall'Osto</em:creator>
+				<em:homepageURL>https://github.com/Dominic-DallOsto/zotero-reading-list#readme</em:homepageURL>
+			</Description>
+		</em:localized>
+		
+		<!-- Or requires Zotero Standalone -->
+		<em:targetApplication>
+			<Description>
+				<em:id>zotero@chnm.gmu.edu</em:id>
+				<em:minVersion>5.0</em:minVersion>
+				<em:maxVersion>*</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+
+		<!-- Or requires Juris-M -->
+		<em:targetApplication>
+		  <Description>
+			<em:id>juris-m@juris-m.github.io</em:id>
+			<em:minVersion>4.0</em:minVersion>
+			<em:maxVersion>*</em:maxVersion>
+		  </Description>
+		</em:targetApplication>
+	</Description>
+</RDF>
