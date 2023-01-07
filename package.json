@@ -1,6 +1,6 @@
 {
 	"name": "zotero-reading-list",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "Keep track of whether you've read items in Zotero",
 	"scripts": {
 		"lint": "eslint . --ext .ts --fix --cache --cache-location .eslintcache/",
