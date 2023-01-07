@@ -8,7 +8,7 @@ require('zotero-plugin/rdf')
 require('zotero-plugin/version')
 
 async function build() {
-  rmrf.sync('gen')
+  // rmrf.sync('gen')
   await esbuild.build({
     bundle: true,
     format: 'iife',
