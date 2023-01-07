@@ -14,6 +14,9 @@ const STATUS_NAMES = ["New", "To Read", "In Progress", "Read", "Not Reading"];
 const STATUS_ICONS = ["\u2B50", "\uD83D\uDCD9", "\uD83D\uDCD6", "\uD83D\uDCD7", "\uD83D\uDCD5"];
 
 let ENABLE_ICONS: boolean;
+let LABEL_NEW_ITEMS: boolean;
+const ENABLE_ICONS_PREF = "showIcons";
+const LABEL_NEW_ITEMS_PREF = "labelNewItems";
 
 /**
  * Return values for extra field fields.
@@ -92,21 +95,66 @@ function createElementWithAttributes(name:string, attributes:Record<string, stri
 export default class ZoteroOverlay {
 	public prefs: PreferencesManager;
 
+	private itemAddedID: string;
+
 	constructor(prefs: PreferencesManager) {
 		this.prefs = prefs;
-		try {
-			ENABLE_ICONS = this.prefs.get('showIcons') as boolean;
-		} catch (error) {
-			ENABLE_ICONS = true;
-			this.prefs.set('showIcons', true);
-		}
+		ENABLE_ICONS = this.initialisePreference(ENABLE_ICONS_PREF, true) as boolean;
+		LABEL_NEW_ITEMS = this.initialisePreference(LABEL_NEW_ITEMS_PREF, false) as boolean;
+
 		ChromeManager.init();
 		this.fullOverlay();
 		this.addReadStatusColumn();
+
+		if (LABEL_NEW_ITEMS) {
+			this.addNewItemObserver();
+		}
+	}
+
+	initialisePreference(preferenceKey: string, defaultValue: string | number | boolean) {
+		let value: string | number | boolean;
+		try {
+			value = this.prefs.get(preferenceKey);
+			if (value === undefined) {
+				value = defaultValue;
+			}
+		} catch (error) {
+			value = defaultValue;
+			this.prefs.set(preferenceKey, defaultValue);
+		}
+		return value;
+	}
+
+	addNewItemObserver() {
+		const addItemHandler = (action: string, type: string, ids: number[]) => {
+			if (action == 'add') {
+				const items = Zotero.Items.get(ids);
+
+				for (const item of items) {
+					setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, "New");
+					setItemExtraProperty(item, READ_DATE_EXTRA_FIELD, new Date(Date.now()).toISOString());
+					item.saveTx();
+				}
+			}
+		};
+
+		this.itemAddedID = Zotero.Notifier.registerObserver({
+			notify(...args) {
+				// eslint-disable-next-line prefer-spread
+				addItemHandler.apply(null, args);
+			}
+		}, ['item'], 'zotero-reading-list', 1);
+	}
+
+	removeNewItemObserver() {
+		if (this.itemAddedID) {
+			Zotero.Notifier.unregisterObserver(this.itemAddedID);
+		}
 	}
 
 	public unload() {
 		ChromeManager.removeXUL();
+		this.removeNewItemObserver();
 	}
 
 	public addReadStatusColumn() {
@@ -308,10 +356,29 @@ export default class ZoteroOverlay {
 		showIconPref.addEventListener('command',
 			(event) => {
 				ENABLE_ICONS = !ENABLE_ICONS
-				this.prefs.set('showIcons', ENABLE_ICONS);
+				this.prefs.set(ENABLE_ICONS_PREF, ENABLE_ICONS);
 				event.stopPropagation();
 			}, false)
 		preferencesSubmenuPopup.appendChild(showIconPref);
+
+		var labelNewItemsPref = doc.createElement('menuitem');
+		labelNewItemsPref.setAttribute('id', 'zotero-reading-list-preferences-label-new-items');
+		labelNewItemsPref.setAttribute('label', 'Automatically Label New Items');
+		labelNewItemsPref.setAttribute('type', 'checkbox');
+		labelNewItemsPref.setAttribute('checked', LABEL_NEW_ITEMS.toString());
+		labelNewItemsPref.addEventListener('command',
+			(event) => {
+				LABEL_NEW_ITEMS = !LABEL_NEW_ITEMS
+				this.prefs.set(LABEL_NEW_ITEMS_PREF, LABEL_NEW_ITEMS);
+				if (LABEL_NEW_ITEMS) {
+					this.addNewItemObserver();
+				}
+				else {
+					this.removeNewItemObserver();
+				}
+				event.stopPropagation();
+			}, false)
+		preferencesSubmenuPopup.appendChild(labelNewItemsPref);
 	}
 
 	/******************************************/
