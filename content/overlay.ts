@@ -169,18 +169,22 @@ export default class ZoteroOverlay {
         // the value from getField is used by Zotero for sorting the column
 		// and in Zotero 6+ for showing the text in the column
         patch(Zotero.Item.prototype, 'getField', (original) => function Zotero_Item_prototype_getField(field: any, unformatted: any, includeBaseMapped: any) {
-            try {
-				if(field == READ_STATUS_COLUMN_ID && this.isRegularItem()){
+            if (field != READ_STATUS_COLUMN_ID) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				return original.apply(this, arguments)
+			}
+			else if(this.isRegularItem()){
+				try {
 					return formatStatusName(getItemReadStatus(this));
 				}
+				catch (err) {
+					// eslint-disable-next-line no-console
+					console.error('patched getField had error:', {field, unformatted, includeBaseMapped, err})
+				}
 			}
-
-            catch (err) {
-				// eslint-disable-next-line no-console
-				console.error('patched getField had error:', {field, unformatted, includeBaseMapped, err})
+			else {
+				return '';
 			}
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return original.apply(this, arguments)
         });
 	}
 
