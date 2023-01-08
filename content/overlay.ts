@@ -15,8 +15,10 @@ const STATUS_ICONS = ["\u2B50", "\uD83D\uDCD9", "\uD83D\uDCD6", "\uD83D\uDCD7", 
 
 let ENABLE_ICONS: boolean;
 let LABEL_NEW_ITEMS: boolean;
+let ENABLE_KEYBOARD_SHORTCUTS: boolean;
 const ENABLE_ICONS_PREF = "showIcons";
 const LABEL_NEW_ITEMS_PREF = "labelNewItems";
+const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enableKeyboardShortcuts";
 
 /**
  * Return values for extra field fields.
@@ -101,6 +103,7 @@ export default class ZoteroOverlay {
 		this.prefs = prefs;
 		ENABLE_ICONS = this.initialisePreference(ENABLE_ICONS_PREF, true) as boolean;
 		LABEL_NEW_ITEMS = this.initialisePreference(LABEL_NEW_ITEMS_PREF, false) as boolean;
+		ENABLE_KEYBOARD_SHORTCUTS = this.initialisePreference(ENABLE_KEYBOARD_SHORTCUTS_PREF, true) as boolean;
 
 		ChromeManager.init();
 		this.fullOverlay();
@@ -109,6 +112,15 @@ export default class ZoteroOverlay {
 		if (LABEL_NEW_ITEMS) {
 			this.addNewItemObserver();
 		}
+		if (ENABLE_KEYBOARD_SHORTCUTS){
+			this.addKeyboardShortcutListener();
+		}
+	}
+
+	public unload() {
+		ChromeManager.removeXUL();
+		this.removeNewItemObserver();
+		this.removeKeyboardShortcutListener();
 	}
 
 	initialisePreference(preferenceKey: string, defaultValue: string | number | boolean) {
@@ -152,9 +164,25 @@ export default class ZoteroOverlay {
 		}
 	}
 
-	public unload() {
-		ChromeManager.removeXUL();
-		this.removeNewItemObserver();
+	// needs to be an arrow function, else the linter will complain about it resetting the `this`
+	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
+		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
+		if (!keyboardEvent.ctrlKey && !keyboardEvent.shiftKey && keyboardEvent.altKey){
+			if (['1', '2', '3', '4', '5'].includes(keyboardEvent.key)){
+				const selectedStatus = STATUS_NAMES[['1', '2', '3', '4', '5'].indexOf(keyboardEvent.key)];
+				// eslint-disable-next-line no-void
+				void this.setSelectedItemsReadStatus('item', selectedStatus);
+			}
+		}
+	}
+
+	addKeyboardShortcutListener() {
+		// different approach compared to Zutilo https://github.com/wshanks/Zutilo/issues/71#issuecomment-360986808
+		document.addEventListener("keydown", this.keyboardEventHandler);
+	}
+
+	removeKeyboardShortcutListener() {
+		document.removeEventListener("keydown", this.keyboardEventHandler);
 	}
 
 	public addReadStatusColumn() {
@@ -336,19 +364,19 @@ export default class ZoteroOverlay {
 			return;
 		}
 
-		var preferencesSubmenu = doc.createElement('menu');
-		var preferencesSubmenuID = `zotero-reading-list-preferences-submenu`;
+		const preferencesSubmenu = doc.createElement('menu');
+		const preferencesSubmenuID = `zotero-reading-list-preferences-submenu`;
 		preferencesSubmenu.setAttribute('id', preferencesSubmenuID);
 		preferencesSubmenu.setAttribute('label', 'Zotero Reading List Preferences');
 		menuPopup.appendChild(preferencesSubmenu);
 		ChromeManager.registerXULElement(preferencesSubmenu, doc);
 
-		var preferencesSubmenuPopup = doc.createElement('menupopup');
-		var preferencesSubmenuPopupItemID = `zotero-reading-list-preferences-submenu-popup`
+		const preferencesSubmenuPopup = doc.createElement('menupopup');
+		const preferencesSubmenuPopupItemID = `zotero-reading-list-preferences-submenu-popup`
 		preferencesSubmenuPopup.setAttribute('id', preferencesSubmenuPopupItemID);
 		preferencesSubmenu.appendChild(preferencesSubmenuPopup);
 
-		var showIconPref = doc.createElement('menuitem');
+		const showIconPref = doc.createElement('menuitem');
 		showIconPref.setAttribute('id', 'zotero-reading-list-preferences-show-icons');
 		showIconPref.setAttribute('label', 'Show Read Status Icons in Item Tree');
 		showIconPref.setAttribute('type', 'checkbox');
@@ -361,7 +389,7 @@ export default class ZoteroOverlay {
 			}, false)
 		preferencesSubmenuPopup.appendChild(showIconPref);
 
-		var labelNewItemsPref = doc.createElement('menuitem');
+		const labelNewItemsPref = doc.createElement('menuitem');
 		labelNewItemsPref.setAttribute('id', 'zotero-reading-list-preferences-label-new-items');
 		labelNewItemsPref.setAttribute('label', 'Automatically Label New Items');
 		labelNewItemsPref.setAttribute('type', 'checkbox');
@@ -379,6 +407,25 @@ export default class ZoteroOverlay {
 				event.stopPropagation();
 			}, false)
 		preferencesSubmenuPopup.appendChild(labelNewItemsPref);
+
+		const enableKeyboardShortcutsPref = doc.createElement('menuitem');
+		enableKeyboardShortcutsPref.setAttribute('id', 'zotero-reading-list-preferences-enable-keyboard-shortcuts');
+		enableKeyboardShortcutsPref.setAttribute('label', 'Enable Keyboard Shortcuts');
+		enableKeyboardShortcutsPref.setAttribute('type', 'checkbox');
+		enableKeyboardShortcutsPref.setAttribute('checked', ENABLE_KEYBOARD_SHORTCUTS.toString());
+		enableKeyboardShortcutsPref.addEventListener('command',
+			(event) => {
+				ENABLE_KEYBOARD_SHORTCUTS = !ENABLE_KEYBOARD_SHORTCUTS
+				this.prefs.set(ENABLE_KEYBOARD_SHORTCUTS_PREF, ENABLE_KEYBOARD_SHORTCUTS);
+				if (ENABLE_KEYBOARD_SHORTCUTS) {
+					this.addKeyboardShortcutListener();
+				}
+				else {
+					this.removeKeyboardShortcutListener();
+				}
+				event.stopPropagation();
+			}, false)
+		preferencesSubmenuPopup.appendChild(enableKeyboardShortcutsPref);
 	}
 
 	/******************************************/
