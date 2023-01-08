@@ -4,7 +4,7 @@ An extension for Zotero that allows setting the read status (New, To Read, In Pr
 
 ![linux image](https://user-images.githubusercontent.com/26859884/147862773-4cd8e6d3-4444-4c8e-b5b7-6bfe7036ff25.png)
 
-Change an item's status by right clicking (supports multiple items at once).
+Change an item's status by right clicking or by using the shortcut keys Alt+1 to Alt+5 (supports multiple items at once).
 
 ![right click menu](https://user-images.githubusercontent.com/26859884/211170769-57b44b21-1c50-4f5a-8baf-2e4855fb85ef.png)
 
