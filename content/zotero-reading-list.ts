@@ -1,4 +1,4 @@
-import PreferencesManager from './preferences-manager';
+import {PreferencesManager} from './preferences-manager';
 import ZoteroOverlay from './overlay';
 
 declare const Zotero: any;

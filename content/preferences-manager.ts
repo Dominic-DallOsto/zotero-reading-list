@@ -1,11 +1,67 @@
+import { Type } from "typescript";
+
 declare const Services: any;
 declare const Components: any;
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 const PREF_BRANCH = 'extensions.zotero-reading-list.';
 
-export default class PreferencesManager {
+export class Preference {
+	public name: string;
+
+	public castType: (_: any) => boolean|string|number;
+
+	public defaultValue: boolean|string|number;
+
+	public description: string;
+
+	constructor(name: string, defaultValue: boolean|string|number, description: string) {
+		this.name = name;
+		this.defaultValue = defaultValue;
+		this.description = description;
+	}
+
+	public set: (branch, value: boolean|string|number) => void;
+}
+
+class BooleanPreference extends Preference{
+	constructor(name: string, defaultValue: boolean, description: string) {
+		super(name, defaultValue, description)
+		this.castType = (x: any) => x as boolean;
+		this.set = function (branch, value: boolean) {
+			branch.setBoolPref(name, value)
+		};
+	}
+}
+
+class StringPreference extends Preference{
+	constructor(name: string, defaultValue: string, description: string) {
+		super(name, defaultValue, description)
+		this.castType = (x: any) => x as string;
+		this.set = function (branch, value: boolean) {
+			branch.setCharPref(name, value)
+		};
+	}
+}
+
+class IntPreference extends Preference{
+	constructor(name: string, defaultValue: number, description: string) {
+		super(name, defaultValue, description)
+		this.castType = (x: any) => x as number;
+		this.set = function (branch, value: boolean) {
+			branch.setIntPref(name, value)
+		};
+	}
+}
+
+export class PreferencesManager {
 	private prefBranch: any;
+
+	public preferenceList = {
+		SHOW_ICONS: new BooleanPreference("showIcons", true, "Show Read Status Icons in Item Tree"),
+		LABEL_NEW_ITEMS: new BooleanPreference("labelNewItems", false, "Automatically Label New Items"),
+		ENABLE_KEYBOARD_SHORTCUTS: new BooleanPreference("enableKeyboardShortcuts", true, "Enable Keyboard Shortcuts")
+	}
 
 	constructor() {
 		this.prefBranch = Services.prefs.getBranch(PREF_BRANCH);
@@ -17,7 +73,9 @@ export default class PreferencesManager {
 
 	setDefaults() {
 		const defaults = Services.prefs.getDefaultBranch(PREF_BRANCH);
-		defaults.setBoolPref('showIcons', true);
+		for (const [, preference] of Object.entries(this.preferenceList)){
+			preference.set(defaults, preference.defaultValue);
+		}
 	}
 
 	get(pref: string, global = false) {
