@@ -1,0 +1,17 @@
+{
+  "addons": {
+    "zotero-reading-list@hotmail.com": {
+      "updates": [
+        {
+          "version": "1.0.0",
+          "update_link": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/download/zotero-reading-list.xpi",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "6.999"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
