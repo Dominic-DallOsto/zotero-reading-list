@@ -4,7 +4,7 @@
 	"description": "Keep track of whether you've read items in Zotero",
 	"config": {
 		"addonName": "Zotero Reading List",
-		"addonID": "zotero-reading-list@hotmail.com",
+		"addonID": "zotero-reading-list@github.com",
 		"addonRef": "zotero-reading-list",
 		"addonInstance": "ZoteroReadingList",
 		"prefsPrefix": "extensions.zotero.zotero-reading-list",
