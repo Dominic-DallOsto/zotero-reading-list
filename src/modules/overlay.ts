@@ -26,6 +26,10 @@ function initialiseDefaultPref(preferenceName: string, defaultValue: boolean | s
 	}
 }
 
+function isString(argument: any): argument is string {
+	return typeof argument == 'string'
+}
+
 /**
  * Return values for extra field fields.
  * @param {Zotero.Item} item - A Zotero item.
@@ -41,7 +45,7 @@ function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
 			if (lineMatch) return lineMatch[1].trim(); //what our capture group found, with whitespace trimmed
 			else return false;
 		})
-		.filter(Boolean);
+		.filter(isString);
 }
 
 /**
