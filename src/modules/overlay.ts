@@ -1,33 +1,44 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 
-const READ_STATUS_COLUMN_ID = 'readstatus';
-const READ_STATUS_COLUMN_NAME = 'Read Status';
-const READ_STATUS_EXTRA_FIELD = 'Read_Status';
-const READ_DATE_EXTRA_FIELD = 'Read_Status_Date';
+const READ_STATUS_COLUMN_ID = "readstatus";
+const READ_STATUS_COLUMN_NAME = "Read Status";
+const READ_STATUS_EXTRA_FIELD = "Read_Status";
+const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 const STATUS_NAMES = ["New", "To Read", "In Progress", "Read", "Not Reading"];
-const STATUS_ICONS = ["\u2B50", "\uD83D\uDCD9", "\uD83D\uDCD6", "\uD83D\uDCD7", "\uD83D\uDCD5"];
+const STATUS_ICONS = [
+	"\u2B50",
+	"\uD83D\uDCD9",
+	"\uD83D\uDCD6",
+	"\uD83D\uDCD7",
+	"\uD83D\uDCD5",
+];
 
 const SHOW_ICONS_PREF = getGlobalPrefName("show-icons");
 const LABEL_NEW_ITEMS_PREF = getGlobalPrefName("label-new-items");
-const ENABLE_KEYBOARD_SHORTCUTS_PREF = getGlobalPrefName("enable-keyboard-shortcuts");
+const ENABLE_KEYBOARD_SHORTCUTS_PREF = getGlobalPrefName(
+	"enable-keyboard-shortcuts",
+);
 
 function getGlobalPrefName(preferenceName: string) {
-	return `${config.prefsPrefix}.${preferenceName}`
+	return `${config.prefsPrefix}.${preferenceName}`;
 }
 
 function getPref(preferenceName: string) {
-	return Zotero.Prefs.get(preferenceName, true)
+	return Zotero.Prefs.get(preferenceName, true);
 }
 
-function initialiseDefaultPref(preferenceName: string, defaultValue: boolean | string | number) {
+function initialiseDefaultPref(
+	preferenceName: string,
+	defaultValue: boolean | string | number,
+) {
 	if (getPref(preferenceName) === undefined) {
 		Zotero.Prefs.set(preferenceName, defaultValue, true);
 	}
 }
 
 function isString(argument: any): argument is string {
-	return typeof argument == 'string'
+	return typeof argument == "string";
 }
 
 /**
@@ -37,12 +48,14 @@ function isString(argument: any): argument is string {
  * @returns {String[]} values - Array of values for the desired extra field field.
  */
 function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
-	const pattern = new RegExp(`^${fieldName}:(.+)$`, 'i');
-	return item.getField('extra')
+	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
+	return item
+		.getField("extra")
 		.split(/\n/g)
 		.map((line: string) => {
 			const lineMatch = line.match(pattern);
-			if (lineMatch) return lineMatch[1].trim(); //what our capture group found, with whitespace trimmed
+			if (lineMatch)
+				return lineMatch[1].trim(); //what our capture group found, with whitespace trimmed
 			else return false;
 		})
 		.filter(isString);
@@ -55,21 +68,26 @@ function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
  * @param {string} fieldName - The name of the extra field to be set.
  * @param {String[]} values - An array of values for the field to be set.
  */
-function setItemExtraProperty(item: Zotero.Item, fieldName: string, values: string | string[]) {
-	const pattern = new RegExp(`^${fieldName}:.+$`, 'i')
+function setItemExtraProperty(
+	item: Zotero.Item,
+	fieldName: string,
+	values: string | string[],
+) {
+	const pattern = new RegExp(`^${fieldName}:.+$`, "i");
 	if (!Array.isArray(values)) values = [values];
-	let restOfExtraField = item.getField('extra')
+	let restOfExtraField = item
+		.getField("extra")
 		.split(/\n/g)
-		.filter((line) => !(line.match(pattern)))
-		.join('\n');
+		.filter((line) => !line.match(pattern))
+		.join("\n");
 
-	for (let value of values) {
+	for (const value of values) {
 		if (value) {
 			// make sure there are no new lines!
 			restOfExtraField += `\n${fieldName}: ${value.trim()}`;
 		}
 	}
-	item.setField('extra', restOfExtraField);
+	item.setField("extra", restOfExtraField);
 }
 
 /**
@@ -80,7 +98,9 @@ function setItemExtraProperty(item: Zotero.Item, fieldName: string, values: stri
 function formatStatusName(statusName: string): string {
 	if (getPref(SHOW_ICONS_PREF)) {
 		const statusIndex = STATUS_NAMES.indexOf(statusName);
-		const localisedStatus = getString(`status-${statusName.toLowerCase().replace(" ", "_")}`)
+		const localisedStatus = getString(
+			`status-${statusName.toLowerCase().replace(" ", "_")}`,
+		);
 		if (statusIndex > -1) {
 			return `${STATUS_ICONS[statusIndex]} ${localisedStatus}`;
 		}
@@ -96,12 +116,19 @@ function getItemReadStatus(item: Zotero.Item) {
 	return "";
 }
 
-async function setSelectedItemsReadStatus(menuName: string, statusName: string) {
+async function setSelectedItemsReadStatus(
+	menuName: string,
+	statusName: string,
+) {
 	const items = await getSelectedItems(menuName);
 	for (const item of items) {
 		setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
-		setItemExtraProperty(item, READ_DATE_EXTRA_FIELD, new Date(Date.now()).toISOString());
-		item.saveTx();
+		setItemExtraProperty(
+			item,
+			READ_DATE_EXTRA_FIELD,
+			new Date(Date.now()).toISOString(),
+		);
+		void item.saveTx();
 	}
 }
 
@@ -116,18 +143,21 @@ async function setSelectedItemsReadStatus(menuName: string, statusName: string) 
 async function getSelectedItems(menuName: string) {
 	let items: Zotero.Item[] = [];
 	switch (menuName) {
-		case 'item': {
-			items = ZoteroPane.getSelectedItems()
+		case "item": {
+			items = ZoteroPane.getSelectedItems();
 			break;
 		}
-		case 'collection': {
+		case "collection": {
 			const collectionTreeRow = ZoteroPane.getCollectionTreeRow();
 			if (collectionTreeRow) {
+				// enable type checks when zotero types file is updated
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				if (collectionTreeRow.isCollection()) {
 					const collection = ZoteroPane.getSelectedCollection();
 					if (collection) {
 						items = collection.getChildItems();
 					}
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 				} else if (collectionTreeRow.isLibrary()) {
 					const libraryID = ZoteroPane.getSelectedLibraryID();
 					items = await Zotero.Items.getAll(libraryID);
@@ -142,11 +172,11 @@ async function getSelectedItems(menuName: string) {
 export default class ZoteroReadingList {
 	itemAddedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
-	preferenceUpdateObservers?: Symbol[];
+	preferenceUpdateObservers?: symbol[];
 
 	constructor() {
 		this.initialiseDefaultPreferences();
-		this.addReadStatusColumn();
+		void this.addReadStatusColumn();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
 
@@ -177,60 +207,80 @@ export default class ZoteroReadingList {
 
 	addPreferenceUpdateObservers() {
 		this.preferenceUpdateObservers = [
-			Zotero.Prefs.registerObserver(ENABLE_KEYBOARD_SHORTCUTS_PREF, (value: boolean) => {
-				if (value) {
-					this.addKeyboardShortcutListener();
-				}
-				else {
-					this.removeKeyboardShortcutListener();
-				}
-			}, true),
-			Zotero.Prefs.registerObserver(LABEL_NEW_ITEMS_PREF, (value: boolean) => {
-				if (value) {
-					this.addNewItemLabeller();
-				}
-				else {
-					this.removeNewItemLabeller();
-				}
-			}, true)
-		]
+			Zotero.Prefs.registerObserver(
+				ENABLE_KEYBOARD_SHORTCUTS_PREF,
+				(value: boolean) => {
+					if (value) {
+						this.addKeyboardShortcutListener();
+					} else {
+						this.removeKeyboardShortcutListener();
+					}
+				},
+				true,
+			) as symbol,
+			Zotero.Prefs.registerObserver(
+				LABEL_NEW_ITEMS_PREF,
+				(value: boolean) => {
+					if (value) {
+						this.addNewItemLabeller();
+					} else {
+						this.removeNewItemLabeller();
+					}
+				},
+				true,
+			) as symbol,
+		];
 	}
 
 	removePreferenceUpdateObservers() {
 		if (this.preferenceUpdateObservers) {
-			for (let preferenceUpdateObserverSymbol of this.preferenceUpdateObservers) {
+			for (const preferenceUpdateObserverSymbol of this
+				.preferenceUpdateObservers) {
 				Zotero.Prefs.unregisterObserver(preferenceUpdateObserverSymbol);
 			}
 		}
 	}
 
 	async addReadStatusColumn() {
-		this.itemTreeReadStatusColumnId = await Zotero.ItemTreeManager.registerColumns({
-			dataKey: READ_STATUS_COLUMN_ID,
-			label: READ_STATUS_COLUMN_NAME,
-			pluginID: config.addonID,
-			dataProvider: (item: Zotero.Item, dataKey: string) => {
-				return getItemReadStatus(item);
-			},
-			// if we put the icon in the dataprovider, it only gets updated when the read status changes
-			// putting the icon in the render function updates when the row is clicked or column is sorted
-			renderCell: function (index: number, data: string, column: any) {
-				const text = document.createElementNS('http://www.w3.org/1999/xhtml', 'span');
-				text.className = 'cell-text';
-				text.innerText = formatStatusName(data);
+		this.itemTreeReadStatusColumnId =
+			await Zotero.ItemTreeManager.registerColumns({
+				dataKey: READ_STATUS_COLUMN_ID,
+				label: READ_STATUS_COLUMN_NAME,
+				pluginID: config.addonID,
+				dataProvider: (item: Zotero.Item, dataKey: string) => {
+					return getItemReadStatus(item);
+				},
+				// if we put the icon in the dataprovider, it only gets updated when the read status changes
+				// putting the icon in the render function updates when the row is clicked or column is sorted
+				renderCell: function (
+					index: number,
+					data: string,
+					column: { className: string },
+				) {
+					const text = document.createElementNS(
+						"http://www.w3.org/1999/xhtml",
+						"span",
+					);
+					text.className = "cell-text";
+					text.innerText = formatStatusName(data);
 
-				const cell = document.createElementNS('http://www.w3.org/1999/xhtml', 'span');
-				cell.className = `cell ${column.className}`;
-				cell.append(text);
+					const cell = document.createElementNS(
+						"http://www.w3.org/1999/xhtml",
+						"span",
+					);
+					cell.className = `cell ${column.className}`;
+					cell.append(text);
 
-				return cell;
-			}
-		});
+					return cell;
+				},
+			});
 	}
 
 	removeReadStatusColumn() {
 		if (this.itemTreeReadStatusColumnId) {
-			Zotero.ItemTreeManager.unregisterColumns(this.itemTreeReadStatusColumnId)
+			void Zotero.ItemTreeManager.unregisterColumns(
+				this.itemTreeReadStatusColumnId,
+			);
 		}
 	}
 
@@ -243,53 +293,67 @@ export default class ZoteroReadingList {
 			defaultXUL: true,
 		};
 		ztoolkit.PreferencePane.register(prefOptions);
-
 	}
 
 	removePreferenceMenu() {
-		ztoolkit.PreferencePane.unregister(config.addonID)
+		ztoolkit.PreferencePane.unregister(config.addonID);
 	}
 
 	addRightClickMenuPopup() {
-		ztoolkit.Menu.register(
-			"item",
-			{
-				id: "zotero-reading-list-right-click-item-menu",
-				tag: "menu",
-				label: getString("menupopup-label"),
-				children: STATUS_NAMES.map((status_name: string) => {
-					return {
-						tag: "menuitem",
-						label: getString(`status-${status_name.toLowerCase().replace(" ", "_")}`),
-						commandListener: (event) => setSelectedItemsReadStatus('item', status_name),
-					}
-				}),
-			}
-		);
+		ztoolkit.Menu.register("item", {
+			id: "zotero-reading-list-right-click-item-menu",
+			tag: "menu",
+			label: getString("menupopup-label"),
+			children: STATUS_NAMES.map((status_name: string) => {
+				return {
+					tag: "menuitem",
+					label: getString(
+						`status-${status_name.toLowerCase().replace(" ", "_")}`,
+					),
+					commandListener: (event) =>
+						setSelectedItemsReadStatus("item", status_name),
+				};
+			}),
+		});
 	}
 
 	removeRightClickMenu() {
-		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu")
+		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu");
 	}
 
 	addNewItemLabeller() {
-		const addItemHandler = (action: string, type: string, ids: string[] | number[], extraData: any) => {
-			if (action == 'add') {
+		const addItemHandler = (
+			action: string,
+			type: string,
+			ids: string[] | number[],
+			extraData: any,
+		) => {
+			if (action == "add") {
 				const items = Zotero.Items.get(ids);
 
 				for (const item of items) {
 					setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, "New");
-					setItemExtraProperty(item, READ_DATE_EXTRA_FIELD, new Date(Date.now()).toISOString());
-					item.saveTx();
+					setItemExtraProperty(
+						item,
+						READ_DATE_EXTRA_FIELD,
+						new Date(Date.now()).toISOString(),
+					);
+					void item.saveTx();
 				}
 			}
 		};
 
-		this.itemAddedListenerID = Zotero.Notifier.registerObserver({
-			notify(...args) {
-				addItemHandler.apply(null, args);
-			}
-		}, ['item'], 'zotero-reading-list', 1);
+		this.itemAddedListenerID = Zotero.Notifier.registerObserver(
+			{
+				notify(...args) {
+					// eslint-disable-next-line prefer-spread
+					addItemHandler.apply(null, args);
+				},
+			},
+			["item"],
+			"zotero-reading-list",
+			1,
+		);
 	}
 
 	removeNewItemLabeller() {
@@ -300,13 +364,20 @@ export default class ZoteroReadingList {
 
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
 		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
-		if (!keyboardEvent.ctrlKey && !keyboardEvent.shiftKey && keyboardEvent.altKey) {
-			if (['1', '2', '3', '4', '5'].includes(keyboardEvent.key)) {
-				const selectedStatus = STATUS_NAMES[['1', '2', '3', '4', '5'].indexOf(keyboardEvent.key)];
-				setSelectedItemsReadStatus('item', selectedStatus);
+		if (
+			!keyboardEvent.ctrlKey &&
+			!keyboardEvent.shiftKey &&
+			keyboardEvent.altKey
+		) {
+			if (["1", "2", "3", "4", "5"].includes(keyboardEvent.key)) {
+				const selectedStatus =
+					STATUS_NAMES[
+						["1", "2", "3", "4", "5"].indexOf(keyboardEvent.key)
+					];
+				void setSelectedItemsReadStatus("item", selectedStatus);
 			}
 		}
-	}
+	};
 
 	addKeyboardShortcutListener() {
 		// different approach compared to Zutilo https://github.com/wshanks/Zutilo/issues/71#issuecomment-360986808

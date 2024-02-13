@@ -1,21 +1,34 @@
 <linkset>
 	<html:link rel="localization" href="__addonRef__-preferences.ftl" />
 </linkset>
-<vbox id="zotero-prefpane-__addonRef__" onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})">
+<vbox
+	id="zotero-prefpane-__addonRef__"
+	onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})"
+>
 	<groupbox>
 		<label>
 			<html:h2 data-l10n-id="pref-title"></html:h2>
 		</label>
-		<checkbox id="zotero-prefpane-__addonRef__-show-icons" preference="extensions.zotero.__addonRef__.show-icons"
-			data-l10n-id="pref-show-icons" />
-		<checkbox id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
+		<checkbox
+			id="zotero-prefpane-__addonRef__-show-icons"
+			preference="extensions.zotero.__addonRef__.show-icons"
+			data-l10n-id="pref-show-icons"
+		/>
+		<checkbox
+			id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
 			preference="extensions.zotero.__addonRef__.enable-keyboard-shortcuts"
-			data-l10n-id="pref-enable-keyboard-shortcuts" />
-		<checkbox id="zotero-prefpane-__addonRef__-label-new-items"
-			preference="extensions.zotero.__addonRef__.label-new-items" data-l10n-id="pref-label-new-items" />
+			data-l10n-id="pref-enable-keyboard-shortcuts"
+		/>
+		<checkbox
+			id="zotero-prefpane-__addonRef__-label-new-items"
+			preference="extensions.zotero.__addonRef__.label-new-items"
+			data-l10n-id="pref-label-new-items"
+		/>
 	</groupbox>
 </vbox>
 <vbox>
-	<html:label data-l10n-id="pref-help"
-		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'></html:label>
+	<html:label
+		data-l10n-id="pref-help"
+		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+	></html:label>
 </vbox>

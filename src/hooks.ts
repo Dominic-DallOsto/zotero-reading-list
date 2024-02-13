@@ -24,12 +24,14 @@ async function onStartup() {
 	await onMainWindowLoad(window);
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function onMainWindowLoad(win: Window): Promise<void> {
 	// Create ztoolkit for every window
 	addon.data.ztoolkit = createZToolkit();
 	zoteroReadingList = new ZoteroReadingList();
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function onMainWindowUnload(win: Window): Promise<void> {
 	zoteroReadingList.unload();
 	ztoolkit.unregisterAll();
