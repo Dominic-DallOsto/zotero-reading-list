@@ -40,6 +40,33 @@ jobs:
         # only trigger when tagged with a version
         if: startsWith(github.event.ref, 'refs/tags/v')
         steps:
+            - name: checkout
+              uses: actions/checkout@v2
+
+            - name: install node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 20
+
+            - name: Cache node dependencies
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-dependencies
+              with:
+                  path: |
+                      ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+
+            - name: install node dependencies
+              run: npm install
+
+            - name: build
+              run: npm run build
+
             - name: release
               run: |
                   npm run release -- --no-increment --no-git --github.release --ci --VV
