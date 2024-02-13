@@ -19,10 +19,10 @@ Change an item's status by right clicking or by using the shortcut keys Alt+1 to
 
 Under Tools -> Zotero Reading List Preferences you can configure the following options
 
-| Option | Description |
-| --- | --- |
+| Option                              | Description                                                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Show Read Status Icons in Item Tree | Show icons along with the status of whether you've read items in the "Read Status" column. If not, just show the status names. |
-| Automatically Label New Items | When adding new items to your Zotero library, do you want them labelled as "New"? |
-| Enable Keyboard Shortcuts | With an item selected, pressed Alt+1, ... Alt+5 to set that item's read status. |
+| Automatically Label New Items       | When adding new items to your Zotero library, do you want them labelled as "New"?                                              |
+| Enable Keyboard Shortcuts           | With an item selected, pressed Alt+1, ... Alt+5 to set that item's read status.                                                |
 
 ![options menu](https://user-images.githubusercontent.com/26859884/211217679-e8378363-329a-4048-8138-613ef73bf5ac.png)

@@ -1,14 +1,14 @@
 {
-  "compilerOptions": {
-    "experimentalDecorators": true,
-    "module": "commonjs",
-    "target": "ES2016",
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "removeComments": false,
-    "sourceMap": false
-  },
-  "include": ["src", "typings", "node_modules/zotero-types"],
-  "exclude": ["build", "addon"]
+	"compilerOptions": {
+		"experimentalDecorators": true,
+		"module": "commonjs",
+		"target": "ES2016",
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"removeComments": false,
+		"sourceMap": false
+	},
+	"include": ["src", "typings", "node_modules/zotero-types"],
+	"exclude": ["build", "addon"]
 }
