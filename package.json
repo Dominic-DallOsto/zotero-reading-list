@@ -1,6 +1,6 @@
 {
 	"name": "zotero-reading-list",
-	"version": "1.0.0-beta.1",
+	"version": "1.0.0",
 	"description": "Keep track of whether you've read items in Zotero",
 	"config": {
 		"addonName": "Zotero Reading List",
@@ -9,7 +9,7 @@
 		"addonInstance": "ZoteroReadingList",
 		"prefsPrefix": "extensions.zotero.zotero-reading-list",
 		"releasePage": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases",
-		"updateJSON": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/download/release/update.json"
+		"updateJSON": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/download/latest/update.json"
 	},
 	"main": "src/index.ts",
 	"scripts": {
