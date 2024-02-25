@@ -8,6 +8,8 @@ Change an item's status by right clicking or by using the shortcut keys Alt+1 to
 
 ![right click menu](https://github.com/Dominic-DallOsto/zotero-reading-list/assets/26859884/10c46660-445d-4591-ad99-777fe58f788f)
 
+You can also remove an item's read status through the right click menu or with the shortcut Alt+0.
+
 ## Installation
 
 1. Download the latest release [here](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)
