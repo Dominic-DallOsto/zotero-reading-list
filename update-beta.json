@@ -3,7 +3,7 @@
 		"zotero-reading-list@github.com": {
 			"updates": [
 				{
-					"version": "1.0.0",
+					"version": "1.0.1",
 					"update_link": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest/download/zotero-reading-list.xpi",
 					"applications": {
 						"zotero": {
