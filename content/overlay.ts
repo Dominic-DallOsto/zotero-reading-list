@@ -125,12 +125,8 @@ export default class ZoteroOverlay {
 
 	initialisePreference(preferenceKey: string, defaultValue: string | number | boolean) {
 		let value: string | number | boolean;
-		try {
-			value = this.prefs.get(preferenceKey);
-			if (value === undefined) {
-				value = defaultValue;
-			}
-		} catch (error) {
+		value = this.prefs.get(preferenceKey);
+		if (value === undefined) {
 			value = defaultValue;
 			this.prefs.set(preferenceKey, defaultValue);
 		}
