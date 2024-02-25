@@ -1,34 +1,83 @@
 name: release
 
 on:
-  push:
+    push:
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: install node
-      uses: actions/setup-node@v1
-      with:
-        node-version: 20.x
-    - name: Cache node dependencies
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-dependencies
-      with:
-        path: |
-          ~/.npm
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
-    - name: install node dependencies
-      run: npm install
-    - name: build
-      run: npm run build
-    - name: release
-      run: npm run release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout
+              uses: actions/checkout@v2
+
+            - name: install node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 20
+
+            - name: Cache node dependencies
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-dependencies
+              with:
+                  path: |
+                      ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+
+            - name: install node dependencies
+              run: npm install
+
+            - name: build
+              run: npm run build
+
+    release:
+        runs-on: ubuntu-latest
+        needs: test
+        # only trigger when tagged with a version
+        if: startsWith(github.event.ref, 'refs/tags/v')
+        steps:
+            - name: checkout
+              uses: actions/checkout@v2
+
+            - name: install node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 20
+
+            - name: Cache node dependencies
+              uses: actions/cache@v2
+              env:
+                  cache-name: cache-dependencies
+              with:
+                  path: |
+                      ~/.npm
+                  key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-build-${{ env.cache-name }}-
+                      ${{ runner.os }}-build-
+                      ${{ runner.os }}-
+
+            - name: install node dependencies
+              run: npm install
+
+            - name: build
+              run: npm run build
+
+            - name: release
+              run: |
+                  npm run release -- --no-increment --no-git --github.release --ci --VV
+                  sleep 1s
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Notify release
+              uses: apexskier/github-release-commenter@v1
+              continue-on-error: true
+              with:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  comment-template: |
+                      :rocket: _This ticket has been resolved in {release_tag}. See {release_link} for release notes._
