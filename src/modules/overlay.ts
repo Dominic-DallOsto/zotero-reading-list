@@ -1,5 +1,6 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
+import { patch as $patch$ } from "../utils/patcher";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_COLUMN_NAME = "Read Status";
@@ -41,17 +42,9 @@ function isString(argument: any): argument is string {
 	return typeof argument == "string";
 }
 
-/**
- * Return values for extra field fields.
- * @param {Zotero.Item} item - A Zotero item.
- * @param {string} fieldName - The extra field field name desired.
- * @returns {String[]} values - Array of values for the desired extra field field.
- */
-function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
+function getFieldValueFromExtraData(extraData: string, fieldName: string){
 	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
-	return item
-		.getField("extra")
-		.split(/\n/g)
+	return extraData.split(/\n/g)
 		.map((line: string) => {
 			const lineMatch = line.match(pattern);
 			if (lineMatch)
@@ -59,6 +52,23 @@ function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
 			else return false;
 		})
 		.filter(isString);
+}
+
+function removeFieldValueFromExtraData(extraData: string, fieldName: string){
+	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
+	return extraData.split(/\n/g)
+		.filter((line) => !line.match(pattern))
+		.join("\n");
+}
+
+/**
+ * Return values for extra field fields.
+ * @param {Zotero.Item} item - A Zotero item.
+ * @param {string} fieldName - The extra field field name desired.
+ * @returns {String[]} values - Array of values for the desired extra field field.
+ */
+function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
+	return getFieldValueFromExtraData(item.getField("extra"), fieldName);
 }
 
 /**
@@ -73,13 +83,8 @@ function setItemExtraProperty(
 	fieldName: string,
 	values: string | string[],
 ) {
-	const pattern = new RegExp(`^${fieldName}:.+$`, "i");
 	if (!Array.isArray(values)) values = [values];
-	let restOfExtraField = item
-		.getField("extra")
-		.split(/\n/g)
-		.filter((line) => !line.match(pattern))
-		.join("\n");
+	let restOfExtraField = removeFieldValueFromExtraData(item.getField("extra"), fieldName);
 
 	for (const value of values) {
 		if (value) {
@@ -188,6 +193,7 @@ export default class ZoteroReadingList {
 		}
 
 		this.addPreferenceUpdateObservers();
+		this.removeReadStatusFromExports();
 	}
 
 	public unload() {
@@ -386,5 +392,19 @@ export default class ZoteroReadingList {
 
 	removeKeyboardShortcutListener() {
 		document.removeEventListener("keydown", this.keyboardEventHandler);
+	}
+
+	removeReadStatusFromExports(){
+		$patch$(Zotero.Utilities.Internal, 'itemToExportFormat', (original: Function) => function Zotero_Utilities_Internal_itemToExportFormat(zoteroItem: any, _legacy: any, _skipChildItems: any) {
+			const serializedItem = original.apply(this, arguments);
+			if (serializedItem.extra){
+				let extraText = serializedItem.extra;
+				extraText = removeFieldValueFromExtraData(extraText, READ_STATUS_EXTRA_FIELD);
+				extraText = removeFieldValueFromExtraData(extraText, READ_DATE_EXTRA_FIELD);
+				serializedItem.extra = extraText
+			}
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			return serializedItem
+		  })
 	}
 }
