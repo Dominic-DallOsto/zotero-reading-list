@@ -1,3 +1,4 @@
+import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { patch as $patch$ } from "../utils/patcher";
@@ -96,6 +97,18 @@ function setItemExtraProperty(
 }
 
 /**
+ * Remove field value in extra field item.
+ * @param {Zotero.Item} item - A Zotero item.
+ * @param {string} fieldName - The name of the extra field to be set.
+ */
+function clearItemExtraProperty(
+	item: Zotero.Item,
+	fieldName: string
+) {
+	item.setField("extra", removeFieldValueFromExtraData(item.getField("extra"), fieldName));
+}
+
+/**
  * Format name of status to localise text and include icon if enabled.
  * @param {string} statusName - The name of the status.
  * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
@@ -133,6 +146,17 @@ async function setSelectedItemsReadStatus(
 			READ_DATE_EXTRA_FIELD,
 			new Date(Date.now()).toISOString(),
 		);
+		void item.saveTx();
+	}
+}
+
+async function clearSelectedItemsReadStatus(
+	menuName: string,
+) {
+	const items = await getSelectedItems(menuName);
+	for (const item of items) {
+		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
 		void item.saveTx();
 	}
 }
@@ -310,16 +334,25 @@ export default class ZoteroReadingList {
 			id: "zotero-reading-list-right-click-item-menu",
 			tag: "menu",
 			label: getString("menupopup-label"),
-			children: STATUS_NAMES.map((status_name: string) => {
-				return {
-					tag: "menuitem",
-					label: getString(
-						`status-${status_name.toLowerCase().replace(" ", "_")}`,
-					),
-					commandListener: (event) =>
-						setSelectedItemsReadStatus("item", status_name),
-				};
-			}),
+			children: [{
+				tag: "menuitem",
+				label: getString(
+					"status-none",
+				),
+				commandListener: (event) =>
+					clearSelectedItemsReadStatus("item"),
+			} as MenuitemOptions].concat(
+				STATUS_NAMES.map((status_name: string) => {
+					return {
+						tag: "menuitem",
+						label: getString(
+							`status-${status_name.toLowerCase().replace(" ", "_")}`,
+						),
+						commandListener: (event) =>
+							setSelectedItemsReadStatus("item", status_name),
+					};
+				})
+			),
 		});
 	}
 
@@ -370,6 +403,7 @@ export default class ZoteroReadingList {
 
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
 		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
+		// Or Alt+0 to clear the current read status
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
@@ -381,6 +415,9 @@ export default class ZoteroReadingList {
 						["1", "2", "3", "4", "5"].indexOf(keyboardEvent.key)
 					];
 				void setSelectedItemsReadStatus("item", selectedStatus);
+			}
+			else if (keyboardEvent.key == "0"){
+				clearSelectedItemsReadStatus("item");
 			}
 		}
 	};

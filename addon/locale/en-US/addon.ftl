@@ -1,4 +1,5 @@
 menupopup-label = Read Status
+status-none = None
 status-new = New
 status-to_read = To Read
 status-in_progress = In Progress
