@@ -43,9 +43,10 @@ function isString(argument: any): argument is string {
 	return typeof argument == "string";
 }
 
-function getFieldValueFromExtraData(extraData: string, fieldName: string){
+function getFieldValueFromExtraData(extraData: string, fieldName: string) {
 	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
-	return extraData.split(/\n/g)
+	return extraData
+		.split(/\n/g)
 		.map((line: string) => {
 			const lineMatch = line.match(pattern);
 			if (lineMatch)
@@ -55,9 +56,10 @@ function getFieldValueFromExtraData(extraData: string, fieldName: string){
 		.filter(isString);
 }
 
-function removeFieldValueFromExtraData(extraData: string, fieldName: string){
+function removeFieldValueFromExtraData(extraData: string, fieldName: string) {
 	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
-	return extraData.split(/\n/g)
+	return extraData
+		.split(/\n/g)
 		.filter((line) => !line.match(pattern))
 		.join("\n");
 }
@@ -85,7 +87,10 @@ function setItemExtraProperty(
 	values: string | string[],
 ) {
 	if (!Array.isArray(values)) values = [values];
-	let restOfExtraField = removeFieldValueFromExtraData(item.getField("extra"), fieldName);
+	let restOfExtraField = removeFieldValueFromExtraData(
+		item.getField("extra"),
+		fieldName,
+	);
 
 	for (const value of values) {
 		if (value) {
@@ -101,11 +106,11 @@ function setItemExtraProperty(
  * @param {Zotero.Item} item - A Zotero item.
  * @param {string} fieldName - The name of the extra field to be set.
  */
-function clearItemExtraProperty(
-	item: Zotero.Item,
-	fieldName: string
-) {
-	item.setField("extra", removeFieldValueFromExtraData(item.getField("extra"), fieldName));
+function clearItemExtraProperty(item: Zotero.Item, fieldName: string) {
+	item.setField(
+		"extra",
+		removeFieldValueFromExtraData(item.getField("extra"), fieldName),
+	);
 }
 
 /**
@@ -150,9 +155,7 @@ async function setSelectedItemsReadStatus(
 	}
 }
 
-async function clearSelectedItemsReadStatus(
-	menuName: string,
-) {
+async function clearSelectedItemsReadStatus(menuName: string) {
 	const items = await getSelectedItems(menuName);
 	for (const item of items) {
 		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
@@ -334,14 +337,14 @@ export default class ZoteroReadingList {
 			id: "zotero-reading-list-right-click-item-menu",
 			tag: "menu",
 			label: getString("menupopup-label"),
-			children: [{
-				tag: "menuitem",
-				label: getString(
-					"status-none",
-				),
-				commandListener: (event) =>
-					clearSelectedItemsReadStatus("item"),
-			} as MenuitemOptions].concat(
+			children: [
+				{
+					tag: "menuitem",
+					label: getString("status-none"),
+					commandListener: (event) =>
+						void clearSelectedItemsReadStatus("item"),
+				} as MenuitemOptions,
+			].concat(
 				STATUS_NAMES.map((status_name: string) => {
 					return {
 						tag: "menuitem",
@@ -351,7 +354,7 @@ export default class ZoteroReadingList {
 						commandListener: (event) =>
 							setSelectedItemsReadStatus("item", status_name),
 					};
-				})
+				}),
 			),
 		});
 	}
@@ -415,9 +418,8 @@ export default class ZoteroReadingList {
 						["1", "2", "3", "4", "5"].indexOf(keyboardEvent.key)
 					];
 				void setSelectedItemsReadStatus("item", selectedStatus);
-			}
-			else if (keyboardEvent.key == "0"){
-				clearSelectedItemsReadStatus("item");
+			} else if (keyboardEvent.key == "0") {
+				void clearSelectedItemsReadStatus("item");
 			}
 		}
 	};
@@ -431,18 +433,39 @@ export default class ZoteroReadingList {
 		document.removeEventListener("keydown", this.keyboardEventHandler);
 	}
 
-	removeReadStatusFromExports(){
+	removeReadStatusFromExports() {
 		// need to specify that `this` is an Object (ie. it's Zotero.Utilities.Internal) for TS to be happy
-		$patch$(Zotero.Utilities.Internal, 'itemToExportFormat', (original: Function) => function Zotero_Utilities_Internal_itemToExportFormat(this: Object, zoteroItem: any, _legacy: any, _skipChildItems: any) {
-			const serializedItem = original.apply(this, arguments);
-			if (serializedItem.extra){
-				let extraText = serializedItem.extra;
-				extraText = removeFieldValueFromExtraData(extraText, READ_STATUS_EXTRA_FIELD);
-				extraText = removeFieldValueFromExtraData(extraText, READ_DATE_EXTRA_FIELD);
-				serializedItem.extra = extraText
-			}
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			return serializedItem
-		  })
+		$patch$(
+			Zotero.Utilities.Internal,
+			"itemToExportFormat",
+			// eslint-disable-next-line @typescript-eslint/ban-types
+			(original: Function) =>
+				function Zotero_Utilities_Internal_itemToExportFormat(
+					this: object,
+					zoteroItem: Zotero.Item,
+					_legacy: any,
+					_skipChildItems: any,
+				) {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, prefer-rest-params
+					const serializedItem = original.apply(this, arguments);
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+					if (serializedItem.extra) {
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+						let extraText = serializedItem.extra as string;
+						extraText = removeFieldValueFromExtraData(
+							extraText,
+							READ_STATUS_EXTRA_FIELD,
+						);
+						extraText = removeFieldValueFromExtraData(
+							extraText,
+							READ_DATE_EXTRA_FIELD,
+						);
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+						serializedItem.extra = extraText;
+					}
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+					return serializedItem;
+				},
+		);
 	}
 }
