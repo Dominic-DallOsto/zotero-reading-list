@@ -24,8 +24,8 @@
 	"homepage": "https://github.com/Dominic-DallOsto/zotero-reading-list",
 	"dependencies": {
 		"@types/mocha": "^10.0.6",
-		"@typescript-eslint/eslint-plugin": "^7.0.2",
-		"@typescript-eslint/parser": "^7.0.2",
+		"@typescript-eslint/eslint-plugin": "^5.9.0",
+		"@typescript-eslint/parser": "^5.9.0",
 		"esbuild": "^0.20.1",
 		"eslint": "^8.57.0",
 		"eslint-plugin-import": "^2.29.1",
