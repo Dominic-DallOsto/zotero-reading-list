@@ -395,7 +395,8 @@ export default class ZoteroReadingList {
 	}
 
 	removeReadStatusFromExports(){
-		$patch$(Zotero.Utilities.Internal, 'itemToExportFormat', (original: Function) => function Zotero_Utilities_Internal_itemToExportFormat(zoteroItem: any, _legacy: any, _skipChildItems: any) {
+		// need to specify that `this` is an Object (ie. it's Zotero.Utilities.Internal) for TS to be happy
+		$patch$(Zotero.Utilities.Internal, 'itemToExportFormat', (original: Function) => function Zotero_Utilities_Internal_itemToExportFormat(this: Object, zoteroItem: any, _legacy: any, _skipChildItems: any) {
 			const serializedItem = original.apply(this, arguments);
 			if (serializedItem.extra){
 				let extraText = serializedItem.extra;
