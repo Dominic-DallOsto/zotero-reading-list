@@ -12,6 +12,8 @@ You can also remove an item's read status through the right click menu or with t
 
 ## Installation
 
+> **Note:** The last release supporting Zotero 6 is [v0.3.2](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/tag/v0.3.2). Versions starting from v1.0.0 only support Zotero 7, but the extension should automatically update to the new version when you upgrade your Zotero version.
+
 1. Download the latest release [here](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)
 2. Save the .xpi file (in Firefox, Right click -> Save Link As)
 3. Install in Zotero (Tools -> Add-ons -> Gear icon in the top right -> Install Add-on From File -> Select the .xpi file you downloaded)
