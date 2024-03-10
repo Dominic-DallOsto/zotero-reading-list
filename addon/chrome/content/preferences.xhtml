@@ -1,34 +1,45 @@
 <linkset>
 	<html:link rel="localization" href="__addonRef__-preferences.ftl" />
+	<html:link rel="stylesheet" href="chrome://__addonRef__/content/preferences.css" />
 </linkset>
-<vbox
-	id="zotero-prefpane-__addonRef__"
-	onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', {window})"
->
+<vbox id="zotero-prefpane-__addonRef__" onload="Zotero.__addonInstance__.hooks.onPrefsLoad(window)">
 	<groupbox>
 		<label>
 			<html:h2 data-l10n-id="pref-title"></html:h2>
 		</label>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-show-icons"
-			preference="extensions.zotero.__addonRef__.show-icons"
-			data-l10n-id="pref-show-icons"
-		/>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
+		<checkbox id="zotero-prefpane-__addonRef__-show-icons" preference="extensions.zotero.__addonRef__.show-icons"
+			data-l10n-id="pref-show-icons" />
+		<checkbox id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
 			preference="extensions.zotero.__addonRef__.enable-keyboard-shortcuts"
-			data-l10n-id="pref-enable-keyboard-shortcuts"
-		/>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-label-new-items"
-			preference="extensions.zotero.__addonRef__.label-new-items"
-			data-l10n-id="pref-label-new-items"
-		/>
+			data-l10n-id="pref-enable-keyboard-shortcuts" />
+		<checkbox id="zotero-prefpane-__addonRef__-label-new-items"
+			preference="extensions.zotero.__addonRef__.label-new-items" data-l10n-id="pref-label-new-items" />
 	</groupbox>
-</vbox>
-<vbox>
-	<html:label
-		data-l10n-id="pref-help"
-		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
-	></html:label>
+	<groupbox>
+		<label>
+			<html:h2 data-l10n-id="pref-statuslabeltable-title"></html:h2>
+		</label>
+		<html:table>
+			<html:thead>
+				<html:tr>
+					<!-- <html:th data-l10n-id="pref-statuslabeltable-header-number"></html:th> -->
+					<html:th data-l10n-id="pref-statuslabeltable-header-statusicon"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-statusname"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-reorder"></html:th>
+				</html:tr>
+			</html:thead>
+			<html:tbody id="statusnames-table-body">
+			</html:tbody>
+			<html:button id="statusnames-save-add" onclick="Zotero.__addonInstance__.hooks.addTableRow(window)">Add
+			</html:button>
+			<br />
+			<html:button id="statusnames-save-button" onclick="Zotero.__addonInstance__.hooks.saveTable(window)">Save
+			</html:button>
+			<html:button id="statusnames-reset-button" onclick="Zotero.__addonInstance__.hooks.resetTable(window)">Reset
+				to Default</html:button>
+		</html:table>
+	</groupbox>
+
+	<html:label data-l10n-id="pref-help"
+		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'></html:label>
 </vbox>

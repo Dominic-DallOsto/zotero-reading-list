@@ -2,42 +2,21 @@ import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { patch as $patch$ } from "../utils/patcher";
+import {setPref, getPref, initialiseDefaultPref, getPrefGlobalName} from "../utils/prefs";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_COLUMN_NAME = "Read Status";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
-const STATUS_NAMES = ["New", "To Read", "In Progress", "Read", "Not Reading"];
-const STATUS_ICONS = [
-	"\u2B50",
-	"\uD83D\uDCD9",
-	"\uD83D\uDCD6",
-	"\uD83D\uDCD7",
-	"\uD83D\uDCD5",
-];
 
-const SHOW_ICONS_PREF = getGlobalPrefName("show-icons");
-const LABEL_NEW_ITEMS_PREF = getGlobalPrefName("label-new-items");
-const ENABLE_KEYBOARD_SHORTCUTS_PREF = getGlobalPrefName(
-	"enable-keyboard-shortcuts",
-);
+export const DEFAULT_STATUS_NAMES = ["New", "To Read", "In Progress", "Read", "Not Reading"]
+export const DEFAULT_STATUS_ICONS = ["⭐","📙","📖","📗","📕"]
 
-function getGlobalPrefName(preferenceName: string) {
-	return `${config.prefsPrefix}.${preferenceName}`;
-}
-
-function getPref(preferenceName: string) {
-	return Zotero.Prefs.get(preferenceName, true);
-}
-
-function initialiseDefaultPref(
-	preferenceName: string,
-	defaultValue: boolean | string | number,
-) {
-	if (getPref(preferenceName) === undefined) {
-		Zotero.Prefs.set(preferenceName, defaultValue, true);
-	}
-}
+export const SHOW_ICONS_PREF = "show-icons";
+export const LABEL_NEW_ITEMS_PREF = "label-new-items";
+export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
+export const STATUS_NAME_LIST_PREF = "status-name-list";
+export const STATUS_ICON_LIST_PREF = "status-icon-list";
 
 function isString(argument: any): argument is string {
 	return typeof argument == "string";
@@ -111,24 +90,6 @@ function clearItemExtraProperty(item: Zotero.Item, fieldName: string) {
 		"extra",
 		removeFieldValueFromExtraData(item.getField("extra"), fieldName),
 	);
-}
-
-/**
- * Format name of status to localise text and include icon if enabled.
- * @param {string} statusName - The name of the status.
- * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
- */
-function formatStatusName(statusName: string): string {
-	if (getPref(SHOW_ICONS_PREF)) {
-		const statusIndex = STATUS_NAMES.indexOf(statusName);
-		const localisedStatus = getString(
-			`status-${statusName.toLowerCase().replace(" ", "_")}`,
-		);
-		if (statusIndex > -1) {
-			return `${STATUS_ICONS[statusIndex]} ${localisedStatus}`;
-		}
-	}
-	return statusName;
 }
 
 function getItemReadStatus(item: Zotero.Item) {
@@ -205,9 +166,14 @@ export default class ZoteroReadingList {
 	itemAddedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
 	preferenceUpdateObservers?: symbol[];
+	statusNames: string[];
+	statusIcons: string[];
 
 	constructor() {
 		this.initialiseDefaultPreferences();
+		this.statusNames = this.prefStringToList(getPref(STATUS_NAME_LIST_PREF));
+		this.statusIcons = this.prefStringToList(getPref(STATUS_ICON_LIST_PREF));
+
 		void this.addReadStatusColumn();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
@@ -236,12 +202,22 @@ export default class ZoteroReadingList {
 		initialiseDefaultPref(SHOW_ICONS_PREF, true);
 		initialiseDefaultPref(ENABLE_KEYBOARD_SHORTCUTS_PREF, true);
 		initialiseDefaultPref(LABEL_NEW_ITEMS_PREF, false);
+		initialiseDefaultPref(STATUS_NAME_LIST_PREF, this.listToPrefString(DEFAULT_STATUS_NAMES));
+		initialiseDefaultPref(STATUS_ICON_LIST_PREF, this.listToPrefString(DEFAULT_STATUS_ICONS));
+	}
+
+	prefStringToList(prefString: string | number | boolean | undefined){
+		return (prefString as string).split(';');
+	}
+
+	listToPrefString(stringList: string[]){
+		return stringList.join(';');
 	}
 
 	addPreferenceUpdateObservers() {
 		this.preferenceUpdateObservers = [
 			Zotero.Prefs.registerObserver(
-				ENABLE_KEYBOARD_SHORTCUTS_PREF,
+				getPrefGlobalName(ENABLE_KEYBOARD_SHORTCUTS_PREF),
 				(value: boolean) => {
 					if (value) {
 						this.addKeyboardShortcutListener();
@@ -252,13 +228,28 @@ export default class ZoteroReadingList {
 				true,
 			) as symbol,
 			Zotero.Prefs.registerObserver(
-				LABEL_NEW_ITEMS_PREF,
+				getPrefGlobalName(LABEL_NEW_ITEMS_PREF),
 				(value: boolean) => {
 					if (value) {
 						this.addNewItemLabeller();
 					} else {
 						this.removeNewItemLabeller();
 					}
+				},
+				true,
+			) as symbol,
+			Zotero.Prefs.registerObserver(
+				getPrefGlobalName(STATUS_NAME_LIST_PREF),
+				(value: string) => {
+					this.statusNames = this.prefStringToList(value);
+					this.statusIcons = this.prefStringToList(getPref(STATUS_ICON_LIST_PREF));
+					this.removeRightClickMenu();
+					this.addRightClickMenuPopup();
+					this.removeKeyboardShortcutListener();
+					this.addKeyboardShortcutListener();
+					this.removeReadStatusColumn();
+					void this.addReadStatusColumn();
+					// fix: this returns undefined for the icon if we add a new one
 				},
 				true,
 			) as symbol,
@@ -275,6 +266,7 @@ export default class ZoteroReadingList {
 	}
 
 	async addReadStatusColumn() {
+		const formatStatusName = (statusName: string) => this.formatStatusName(statusName);
 		this.itemTreeReadStatusColumnId =
 			await Zotero.ItemTreeManager.registerColumns({
 				dataKey: READ_STATUS_COLUMN_ID,
@@ -307,6 +299,27 @@ export default class ZoteroReadingList {
 					return cell;
 				},
 			});
+	}
+
+	/**
+	 * Format name of status to localise text and include icon if enabled.
+	 * @param {string} statusName - The name of the status.
+	 * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
+	 */
+	formatStatusName(statusName: string): string {
+		if (getPref(SHOW_ICONS_PREF)) {
+			const statusIndex = this.statusNames.indexOf(statusName);
+			// const localisedStatus = getString(
+			// 	`status-${statusName.toLowerCase().replace(" ", "_")}`,
+			// );
+			// if (statusIndex > -1) {
+			// 	return `${this.statusIcons[statusIndex]} ${localisedStatus}`;
+			// }
+			if (statusIndex > -1) {
+				return `${this.statusIcons[statusIndex]} ${statusName}`;
+			}
+		}
+		return statusName;
 	}
 
 	removeReadStatusColumn() {
@@ -345,12 +358,10 @@ export default class ZoteroReadingList {
 						void clearSelectedItemsReadStatus("item"),
 				} as MenuitemOptions,
 			].concat(
-				STATUS_NAMES.map((status_name: string) => {
+				this.statusNames.map((status_name: string) => {
 					return {
 						tag: "menuitem",
-						label: getString(
-							`status-${status_name.toLowerCase().replace(" ", "_")}`,
-						),
+						label: status_name,
 						commandListener: (event) =>
 							setSelectedItemsReadStatus("item", status_name),
 					};
@@ -407,15 +418,16 @@ export default class ZoteroReadingList {
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
 		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
 		// Or Alt+0 to clear the current read status
+		const possibleKeyCombinations = [...Array(this.statusNames.length).keys()].map((num) => (num+1).toString())
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
 			keyboardEvent.altKey
 		) {
-			if (["1", "2", "3", "4", "5"].includes(keyboardEvent.key)) {
+			if (possibleKeyCombinations.includes(keyboardEvent.key)) {
 				const selectedStatus =
-					STATUS_NAMES[
-						["1", "2", "3", "4", "5"].indexOf(keyboardEvent.key)
+					this.statusNames[
+						possibleKeyCombinations.indexOf(keyboardEvent.key)
 					];
 				void setSelectedItemsReadStatus("item", selectedStatus);
 			} else if (keyboardEvent.key == "0") {
