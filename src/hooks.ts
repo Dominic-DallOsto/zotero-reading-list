@@ -1,4 +1,10 @@
-import {STATUS_NAME_AND_ICON_LIST_PREF, DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS, prefStringToList, listToPrefString} from "./modules/overlay";
+import {
+	STATUS_NAME_AND_ICON_LIST_PREF,
+	DEFAULT_STATUS_NAMES,
+	DEFAULT_STATUS_ICONS,
+	prefStringToList,
+	listToPrefString,
+} from "./modules/overlay";
 import ZoteroReadingList from "./modules/overlay";
 import { config } from "../package.json";
 import { initLocale } from "./utils/locale";
@@ -40,64 +46,85 @@ async function onMainWindowUnload(win: Window): Promise<void> {
 	addon.data.dialog?.window?.close();
 }
 
-function onPrefsLoad(window:Window) {
+function onPrefsLoad(window: Window) {
 	const tableBody = window.document.getElementById("statusnames-table-body");
-	for (const row of createStatusNamesTableRows()){
-		tableBody?.append(row)
+	for (const row of createStatusNamesTableRows()) {
+		tableBody?.append(row);
 	}
 }
 
-function addTableRow(window:Window) {
+function addTableRow(window: Window) {
 	const tableBody = window.document.getElementById("statusnames-table-body");
 	tableBody?.append(createTableRow("", ""));
 }
 
-function resetTable(window:Window) {
-	const tableRows = window.document.getElementById("statusnames-table-body")?.children;
-	if (tableRows != undefined){
-		for (let i=tableRows.length-1; i >= 0; i--){
+function resetTable(window: Window) {
+	const tableRows = window.document.getElementById(
+		"statusnames-table-body",
+	)?.children;
+	if (tableRows != undefined) {
+		for (let i = tableRows.length - 1; i >= 0; i--) {
 			tableRows[i].remove();
 		}
 	}
-	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS));
+	setPref(
+		STATUS_NAME_AND_ICON_LIST_PREF,
+		listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
+	);
 	onPrefsLoad(window);
 }
 
-function saveTable(window:Window) {
-	const tableRows = window.document.getElementById("statusnames-table-body")?.children;
+function saveTable(window: Window) {
+	const tableRows = window.document.getElementById(
+		"statusnames-table-body",
+	)?.children;
 	const names: string[] = [];
 	const icons: string[] = [];
-	if (tableRows != undefined){
-		for (let i=0; i < tableRows.length; i++){
-			icons.push((tableRows[i].children[0].firstChild as HTMLInputElement).value);
-			names.push((tableRows[i].children[1].firstChild as HTMLInputElement).value);
+	if (tableRows != undefined) {
+		for (let i = 0; i < tableRows.length; i++) {
+			icons.push(
+				(tableRows[i].children[0].firstChild as HTMLInputElement).value,
+			);
+			names.push(
+				(tableRows[i].children[1].firstChild as HTMLInputElement).value,
+			);
 		}
 	}
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
 }
 
-function createElement(elementName: string){
-	return document.createElementNS("http://www.w3.org/1999/xhtml", elementName);
+function createElement(elementName: string) {
+	return document.createElementNS(
+		"http://www.w3.org/1999/xhtml",
+		elementName,
+	);
 }
 
-function moveElementHigher(element: HTMLElement){
-	if (element != element.parentElement?.firstChild){
+function moveElementHigher(element: HTMLElement) {
+	if (element != element.parentElement?.firstChild) {
 		element.parentElement?.insertBefore(element, element.previousSibling);
 	}
 }
 
-function moveElementLower(element: HTMLElement){
-	if (element.nextSibling){
-		element.parentElement?.insertBefore(element, element.nextSibling?.nextSibling);
+function moveElementLower(element: HTMLElement) {
+	if (element.nextSibling) {
+		element.parentElement?.insertBefore(
+			element,
+			element.nextSibling?.nextSibling,
+		);
 	}
 }
 
-function createStatusNamesTableRows(){
-	const [statusNames, statusIcons] = prefStringToList(getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string);
-	return statusNames.map((statusName, index) => createTableRow(statusIcons[index], statusName));
+function createStatusNamesTableRows() {
+	const [statusNames, statusIcons] = prefStringToList(
+		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+	);
+	return statusNames.map((statusName, index) =>
+		createTableRow(statusIcons[index], statusName),
+	);
 }
 
-function createTableRow(icon: string, name: string){
+function createTableRow(icon: string, name: string) {
 	const row = createElement("html:tr");
 
 	const iconRow = createElement("html:td");
@@ -119,9 +146,15 @@ function createTableRow(icon: string, name: string){
 	upButton.textContent = "⬆";
 	downButton.textContent = "⬇";
 	binButton.textContent = "🗑";
-	upButton.onclick = () => { moveElementHigher(row) };
-	downButton.onclick = () => { moveElementLower(row) };
-	binButton.onclick = () => { row.remove() };
+	upButton.onclick = () => {
+		moveElementHigher(row);
+	};
+	downButton.onclick = () => {
+		moveElementLower(row);
+	};
+	binButton.onclick = () => {
+		row.remove();
+	};
 	settings.append(upButton);
 	settings.append(downButton);
 	settings.append(binButton);

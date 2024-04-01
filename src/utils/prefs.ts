@@ -34,7 +34,8 @@ export function setPref(key: string, value: string | number | boolean) {
  * @param defaultValue
  */
 export function initialiseDefaultPref(
-	key: string, defaultValue: string | number | boolean,
+	key: string,
+	defaultValue: string | number | boolean,
 ) {
 	if (getPref(key) === undefined) {
 		setPref(key, defaultValue);

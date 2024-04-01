@@ -2,15 +2,26 @@ import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { patch as $patch$ } from "../utils/patcher";
-import {setPref, getPref, initialiseDefaultPref, getPrefGlobalName} from "../utils/prefs";
+import {
+	setPref,
+	getPref,
+	initialiseDefaultPref,
+	getPrefGlobalName,
+} from "../utils/prefs";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_COLUMN_NAME = "Read Status";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 
-export const DEFAULT_STATUS_NAMES = ["New", "To Read", "In Progress", "Read", "Not Reading"]
-export const DEFAULT_STATUS_ICONS = ["⭐","📙","📖","📗","📕"]
+export const DEFAULT_STATUS_NAMES = [
+	"New",
+	"To Read",
+	"In Progress",
+	"Read",
+	"Not Reading",
+];
+export const DEFAULT_STATUS_ICONS = ["⭐", "📙", "📖", "📗", "📕"];
 
 export const SHOW_ICONS_PREF = "show-icons";
 export const LABEL_NEW_ITEMS_PREF = "label-new-items";
@@ -161,13 +172,15 @@ async function getSelectedItems(menuName: string) {
 	return items.filter((item) => item.isRegularItem() as boolean);
 }
 
-export function prefStringToList(prefString: string | number | boolean | undefined){
-	const [statusString, iconString] = (prefString as string).split('|');
-	return [statusString.split(';'), iconString.split(';')];
+export function prefStringToList(
+	prefString: string | number | boolean | undefined,
+) {
+	const [statusString, iconString] = (prefString as string).split("|");
+	return [statusString.split(";"), iconString.split(";")];
 }
 
-export function listToPrefString(stringList: string[], iconList: string[]){
-	return stringList.join(';') + "|" + iconList.join(';');
+export function listToPrefString(stringList: string[], iconList: string[]) {
+	return stringList.join(";") + "|" + iconList.join(";");
 }
 
 export default class ZoteroReadingList {
@@ -179,7 +192,9 @@ export default class ZoteroReadingList {
 
 	constructor() {
 		this.initialiseDefaultPreferences();
-		[this.statusNames, this.statusIcons] = prefStringToList(getPref(STATUS_NAME_AND_ICON_LIST_PREF));
+		[this.statusNames, this.statusIcons] = prefStringToList(
+			getPref(STATUS_NAME_AND_ICON_LIST_PREF),
+		);
 
 		void this.addReadStatusColumn();
 		this.addPreferencesMenu();
@@ -209,7 +224,10 @@ export default class ZoteroReadingList {
 		initialiseDefaultPref(SHOW_ICONS_PREF, true);
 		initialiseDefaultPref(ENABLE_KEYBOARD_SHORTCUTS_PREF, true);
 		initialiseDefaultPref(LABEL_NEW_ITEMS_PREF, false);
-		initialiseDefaultPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS));
+		initialiseDefaultPref(
+			STATUS_NAME_AND_ICON_LIST_PREF,
+			listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
+		);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -239,7 +257,8 @@ export default class ZoteroReadingList {
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(STATUS_NAME_AND_ICON_LIST_PREF),
 				(value: string) => {
-					[this.statusNames, this.statusIcons] = prefStringToList(value);
+					[this.statusNames, this.statusIcons] =
+						prefStringToList(value);
 					this.removeRightClickMenu();
 					this.addRightClickMenuPopup();
 					this.removeKeyboardShortcutListener();
@@ -262,7 +281,8 @@ export default class ZoteroReadingList {
 	}
 
 	async addReadStatusColumn() {
-		const formatStatusName = (statusName: string) => this.formatStatusName(statusName);
+		const formatStatusName = (statusName: string) =>
+			this.formatStatusName(statusName);
 		this.itemTreeReadStatusColumnId =
 			await Zotero.ItemTreeManager.registerColumns({
 				dataKey: READ_STATUS_COLUMN_ID,
@@ -408,7 +428,9 @@ export default class ZoteroReadingList {
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
 		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
 		// Or Alt+0 to clear the current read status
-		const possibleKeyCombinations = [...Array(Math.min(8,this.statusNames.length)).keys()].map((num) => (num+1).toString())
+		const possibleKeyCombinations = [
+			...Array(Math.min(8, this.statusNames.length)).keys(),
+		].map((num) => (num + 1).toString());
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
