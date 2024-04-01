@@ -25,6 +25,7 @@ export const DEFAULT_STATUS_ICONS = ["⭐", "📙", "📖", "📗", "📕"];
 
 export const SHOW_ICONS_PREF = "show-icons";
 export const LABEL_NEW_ITEMS_PREF = "label-new-items";
+export const LABEL_ITEMS_WHEN_OPENING_FILE = "label-items-when-opening-file";
 export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 
@@ -110,20 +111,28 @@ function getItemReadStatus(item: Zotero.Item) {
 	return "";
 }
 
+function setItemReadStatus(item: Zotero.Item, statusName: string) {
+	setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
+	setItemExtraProperty(
+		item,
+		READ_DATE_EXTRA_FIELD,
+		new Date(Date.now()).toISOString(),
+	);
+	void item.saveTx();
+}
+
+function setItemsReadStatus(items: Zotero.Item[], statusName: string) {
+	for (const item of items) {
+		setItemReadStatus(item, statusName);
+	}
+}
+
 async function setSelectedItemsReadStatus(
 	menuName: string,
 	statusName: string,
 ) {
 	const items = await getSelectedItems(menuName);
-	for (const item of items) {
-		setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
-		setItemExtraProperty(
-			item,
-			READ_DATE_EXTRA_FIELD,
-			new Date(Date.now()).toISOString(),
-		);
-		void item.saveTx();
-	}
+	setItemsReadStatus(items, statusName);
 }
 
 async function clearSelectedItemsReadStatus(menuName: string) {
@@ -185,6 +194,7 @@ export function listToPrefString(stringList: string[], iconList: string[]) {
 
 export default class ZoteroReadingList {
 	itemAddedListenerID?: string;
+	fileOpenedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
 	preferenceUpdateObservers?: symbol[];
 	statusNames: string[];
@@ -206,6 +216,9 @@ export default class ZoteroReadingList {
 		if (getPref(LABEL_NEW_ITEMS_PREF)) {
 			this.addNewItemLabeller();
 		}
+		if (getPref(LABEL_ITEMS_WHEN_OPENING_FILE)) {
+			this.addFileOpenedListener();
+		}
 
 		this.addPreferenceUpdateObservers();
 		this.removeReadStatusFromExports();
@@ -217,6 +230,7 @@ export default class ZoteroReadingList {
 		this.removeRightClickMenu();
 		this.removeKeyboardShortcutListener();
 		this.removeNewItemLabeller();
+		this.removeFileOpenedListener();
 		this.removePreferenceUpdateObservers();
 	}
 
@@ -224,6 +238,7 @@ export default class ZoteroReadingList {
 		initialiseDefaultPref(SHOW_ICONS_PREF, true);
 		initialiseDefaultPref(ENABLE_KEYBOARD_SHORTCUTS_PREF, true);
 		initialiseDefaultPref(LABEL_NEW_ITEMS_PREF, false);
+		initialiseDefaultPref(LABEL_ITEMS_WHEN_OPENING_FILE, false);
 		initialiseDefaultPref(
 			STATUS_NAME_AND_ICON_LIST_PREF,
 			listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
@@ -250,6 +265,17 @@ export default class ZoteroReadingList {
 						this.addNewItemLabeller();
 					} else {
 						this.removeNewItemLabeller();
+					}
+				},
+				true,
+			) as symbol,
+			Zotero.Prefs.registerObserver(
+				getPrefGlobalName(LABEL_ITEMS_WHEN_OPENING_FILE),
+				(value: boolean) => {
+					if (value) {
+						this.addFileOpenedListener();
+					} else {
+						this.removeFileOpenedListener();
 					}
 				},
 				true,
@@ -394,15 +420,7 @@ export default class ZoteroReadingList {
 			if (action == "add") {
 				const items = Zotero.Items.get(ids);
 
-				for (const item of items) {
-					setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, "New");
-					setItemExtraProperty(
-						item,
-						READ_DATE_EXTRA_FIELD,
-						new Date(Date.now()).toISOString(),
-					);
-					void item.saveTx();
-				}
+				setItemsReadStatus(items, "New");
 			}
 		};
 
@@ -422,6 +440,44 @@ export default class ZoteroReadingList {
 	removeNewItemLabeller() {
 		if (this.itemAddedListenerID) {
 			Zotero.Notifier.unregisterObserver(this.itemAddedListenerID);
+		}
+	}
+
+	addFileOpenedListener() {
+		const fileOpenHandler = (
+			action: string,
+			type: string,
+			ids: string[] | number[],
+			extraData: any,
+		) => {
+			if (action == "open") {
+				const items = Zotero.Items.getTopLevel(
+					Zotero.Items.get(ids as number[]),
+				);
+
+				setItemsReadStatus(
+					items.filter((item) => getItemReadStatus(item) == "New"),
+					"In Progress",
+				);
+			}
+		};
+
+		this.fileOpenedListenerID = Zotero.Notifier.registerObserver(
+			{
+				notify(...args) {
+					// eslint-disable-next-line prefer-spread
+					fileOpenHandler.apply(null, args);
+				},
+			},
+			["file"],
+			"zotero-reading-list",
+			1,
+		);
+	}
+
+	removeFileOpenedListener() {
+		if (this.fileOpenedListenerID) {
+			Zotero.Notifier.unregisterObserver(this.fileOpenedListenerID);
 		}
 	}
 
