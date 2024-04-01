@@ -11,3 +11,6 @@ pref-statuslabeltable-header-number = Number
 pref-statuslabeltable-header-statusicon = Status Icon
 pref-statuslabeltable-header-statusname = Status Name
 pref-statuslabeltable-header-reorder = Reorder
+pref-statuslabeltable-button-add = Add New Status
+pref-statuslabeltable-button-save = Save
+pref-statuslabeltable-button-reset = Reset to Default

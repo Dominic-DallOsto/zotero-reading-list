@@ -1,7 +1,12 @@
-/* tr:nth-child(even) {
-	background-color: blue;
-} */
+/* Normally need to restart Zotero for these to take effect */
 
-/* * {
-	color: red;
-} */
+/* Add, save, reset buttons */
+table > button {
+	margin: 5px;
+}
+
+/* Up, down, delete buttons in rows */
+td > button {
+	margin-left: 2px;
+	margin-right: 2px;
+}

@@ -1,4 +1,4 @@
-import {STATUS_NAME_LIST_PREF, STATUS_ICON_LIST_PREF, DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS} from "./modules/overlay";
+import {STATUS_NAME_AND_ICON_LIST_PREF, DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS, prefStringToList, listToPrefString} from "./modules/overlay";
 import ZoteroReadingList from "./modules/overlay";
 import { config } from "../package.json";
 import { initLocale } from "./utils/locale";
@@ -59,8 +59,7 @@ function resetTable(window:Window) {
 			tableRows[i].remove();
 		}
 	}
-	setPref(STATUS_NAME_LIST_PREF, DEFAULT_STATUS_NAMES.join(";"));
-	setPref(STATUS_ICON_LIST_PREF, DEFAULT_STATUS_ICONS.join(";"));
+	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS));
 	onPrefsLoad(window);
 }
 
@@ -74,8 +73,7 @@ function saveTable(window:Window) {
 			names.push((tableRows[i].children[1].firstChild as HTMLInputElement).value);
 		}
 	}
-	setPref(STATUS_NAME_LIST_PREF, names.join(";"));
-	setPref(STATUS_ICON_LIST_PREF, icons.join(";"));
+	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
 }
 
 function createElement(elementName: string){
@@ -95,8 +93,7 @@ function moveElementLower(element: HTMLElement){
 }
 
 function createStatusNamesTableRows(){
-	const statusNames = (getPref(STATUS_NAME_LIST_PREF) as string).split(';');
-	const statusIcons = (getPref(STATUS_ICON_LIST_PREF) as string).split(';');
+	const [statusNames, statusIcons] = prefStringToList(getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string);
 	return statusNames.map((statusName, index) => createTableRow(statusIcons[index], statusName));
 }
 
