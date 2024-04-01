@@ -1,4 +1,4 @@
-pref-title = Zotero Reading List
+pref-title = Zotero Reading List Settings
 pref-show-icons =
     .label = Show icons along with an item's read status
 pref-enable-keyboard-shortcuts =
@@ -6,3 +6,11 @@ pref-enable-keyboard-shortcuts =
 pref-label-new-items =
     .label = Automatically label items as "New" when you add them to Zotero
 pref-help = { $name } Build { $version } { $time }
+pref-statuslabeltable-title = Custom Reading Statuses
+pref-statuslabeltable-header-number = Number
+pref-statuslabeltable-header-statusicon = Status Icon
+pref-statuslabeltable-header-statusname = Status Name
+pref-statuslabeltable-header-reorder = Reorder
+pref-statuslabeltable-button-add = Add New Status
+pref-statuslabeltable-button-save = Save
+pref-statuslabeltable-button-reset = Reset to Default

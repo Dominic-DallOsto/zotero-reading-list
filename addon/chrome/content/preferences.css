@@ -1,0 +1,12 @@
+/* Normally need to restart Zotero for these to take effect */
+
+/* Add, save, reset buttons */
+table > button {
+	margin: 5px;
+}
+
+/* Up, down, delete buttons in rows */
+td > button {
+	margin-left: 2px;
+	margin-right: 2px;
+}
