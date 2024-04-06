@@ -31,4 +31,7 @@ Under Edit -> Settings -> Reading List you can configure the following options
 | Show Read Status Icons in Item Tree | Show icons along with the status of whether you've read items in the "Read Status" column. If not, just show the status names.                                                                                         |
 | Enable Keyboard Shortcuts           | With an item selected, pressed Alt+1, ... Alt+5 to set that item's read status.                                                                                                                                        |
 | Automatically Label New Items       | When adding new items to your Zotero library, do you want them labelled as "New"?                                                                                                                                      |
-| Custom Read Statuses and Icons      | Choose custom Read Status names and icons. Keyboard shortcuts will work up to Alt+9. Note: if you delete a read status, it will remain assigned to any items - you'll need to delete / change their statuses manually. |
+| Custom Read Statuses and Icons[^1]   | Choose custom Read Status names and icons. Keyboard shortcuts will work up to Alt+9. Note: if you delete a read status, it will remain assigned to any items - you'll need to delete / change their statuses manually. |
+
+[^1]: Only supported in the Zotero 7 version of the extension
+
