@@ -9,4 +9,10 @@ table > button {
 td > button {
 	margin-left: 2px;
 	margin-right: 2px;
+	font-size: 120%;
+}
+
+table th {
+	text-align: left;
+	margin-left: 6px;
 }
