@@ -23,11 +23,17 @@ export const DEFAULT_STATUS_NAMES = [
 ];
 export const DEFAULT_STATUS_ICONS = ["⭐", "📙", "📖", "📗", "📕"];
 
+export const DEFAULT_STATUS_CHANGE_FROM = ["New", "To Read"];
+export const DEFAULT_STATUS_CHANGE_TO = ["In Progress", "In Progress"];
+
 export const SHOW_ICONS_PREF = "show-icons";
 export const LABEL_NEW_ITEMS_PREF = "label-new-items";
-export const LABEL_ITEMS_WHEN_OPENING_FILE = "label-items-when-opening-file";
+export const LABEL_ITEMS_WHEN_OPENING_FILE_PREF =
+	"label-items-when-opening-file";
 export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
+export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
+	"status-change-on-open-item-list";
 
 function isString(argument: any): argument is string {
 	return typeof argument == "string";
@@ -216,7 +222,7 @@ export default class ZoteroReadingList {
 		if (getPref(LABEL_NEW_ITEMS_PREF)) {
 			this.addNewItemLabeller();
 		}
-		if (getPref(LABEL_ITEMS_WHEN_OPENING_FILE)) {
+		if (getPref(LABEL_ITEMS_WHEN_OPENING_FILE_PREF)) {
 			this.addFileOpenedListener();
 		}
 
@@ -238,10 +244,17 @@ export default class ZoteroReadingList {
 		initialiseDefaultPref(SHOW_ICONS_PREF, true);
 		initialiseDefaultPref(ENABLE_KEYBOARD_SHORTCUTS_PREF, true);
 		initialiseDefaultPref(LABEL_NEW_ITEMS_PREF, false);
-		initialiseDefaultPref(LABEL_ITEMS_WHEN_OPENING_FILE, false);
+		initialiseDefaultPref(LABEL_ITEMS_WHEN_OPENING_FILE_PREF, false);
 		initialiseDefaultPref(
 			STATUS_NAME_AND_ICON_LIST_PREF,
 			listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
+		);
+		initialiseDefaultPref(
+			STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF,
+			listToPrefString(
+				DEFAULT_STATUS_CHANGE_FROM,
+				DEFAULT_STATUS_CHANGE_TO,
+			),
 		);
 	}
 
@@ -270,7 +283,7 @@ export default class ZoteroReadingList {
 				true,
 			) as symbol,
 			Zotero.Prefs.registerObserver(
-				getPrefGlobalName(LABEL_ITEMS_WHEN_OPENING_FILE),
+				getPrefGlobalName(LABEL_ITEMS_WHEN_OPENING_FILE_PREF),
 				(value: boolean) => {
 					if (value) {
 						this.addFileOpenedListener();
@@ -455,10 +468,18 @@ export default class ZoteroReadingList {
 					Zotero.Items.get(ids as number[]),
 				);
 
-				setItemsReadStatus(
-					items.filter((item) => getItemReadStatus(item) == "New"),
-					"In Progress",
+				const [statusFrom, statusTo] = prefStringToList(
+					getPref(STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF) as string,
 				);
+
+				for (const item of items) {
+					const itemReadStatusIndex = statusFrom.indexOf(
+						getItemReadStatus(item),
+					);
+					if (itemReadStatusIndex > -1) {
+						setItemReadStatus(item, statusTo[itemReadStatusIndex]);
+					}
+				}
 			}
 		};
 

@@ -7,7 +7,8 @@
 </linkset>
 <vbox
 	id="zotero-prefpane-__addonRef__"
-	onload="Zotero.__addonInstance__.hooks.onPrefsLoad(window)"
+	onload="Zotero.__addonInstance__.prefsMenu.onPrefsLoad(window)"
+	class="main-section"
 >
 	<groupbox>
 		<label>
@@ -28,12 +29,8 @@
 			preference="extensions.zotero.__addonRef__.label-new-items"
 			data-l10n-id="pref-label-new-items"
 		/>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-label-items-when-opening-file"
-			preference="extensions.zotero.__addonRef__.label-items-when-opening-file"
-			data-l10n-id="pref-label-items-when-opening-file"
-		/>
 	</groupbox>
+	<!-- Status names -->
 	<groupbox>
 		<label>
 			<html:h2 data-l10n-id="pref-statuslabeltable-title"></html:h2>
@@ -41,7 +38,6 @@
 		<html:table>
 			<html:thead>
 				<html:tr>
-					<!-- <html:th data-l10n-id="pref-statuslabeltable-header-number"></html:th> -->
 					<html:th
 						data-l10n-id="pref-statuslabeltable-header-statusicon"
 					></html:th>
@@ -56,23 +52,69 @@
 			<html:tbody id="statusnames-table-body"> </html:tbody>
 			<html:button
 				id="statusnames-save-add"
-				onclick="Zotero.__addonInstance__.hooks.addTableRow(window)"
+				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowStatusNames(window)"
 				data-l10n-id="pref-statuslabeltable-button-add"
 			/>
 			<br />
 			<html:button
 				id="statusnames-save-button"
-				onclick="Zotero.__addonInstance__.hooks.saveTable(window)"
+				onclick="Zotero.__addonInstance__.prefsMenu.saveTableStatusNames(window)"
 				data-l10n-id="pref-statuslabeltable-button-save"
 			/>
 			<html:button
 				id="statusnames-reset-button"
-				onclick="Zotero.__addonInstance__.hooks.resetTable(window)"
+				onclick="Zotero.__addonInstance__.prefsMenu.resetTableStatusNames(window)"
 				data-l10n-id="pref-statuslabeltable-button-reset"
 			/>
 		</html:table>
 	</groupbox>
 
+	<!-- Auto change statuses when opening items -->
+	<groupbox>
+		<label>
+			<html:h2 data-l10n-id="pref-openitemtable-title"></html:h2>
+		</label>
+		<checkbox
+			id="zotero-prefpane-__addonRef__-label-items-when-opening-file"
+			preference="extensions.zotero.__addonRef__.label-items-when-opening-file"
+			data-l10n-id="pref-label-items-when-opening-file"
+			onclick="Zotero.__addonInstance__.prefsMenu.setTableVisibilityOpenItem(window)"
+		/>
+		<html:table>
+			<html:thead>
+				<html:tr>
+					<html:th
+						data-l10n-id="pref-openitemtable-header-statusfrom"
+					></html:th>
+					<html:th
+						data-l10n-id="pref-openitemtable-header-statusto"
+					></html:th>
+					<html:th
+						data-l10n-id="pref-openitemtable-header-delete"
+					></html:th>
+				</html:tr>
+			</html:thead>
+			<html:tbody id="openitem-table-body"> </html:tbody>
+			<html:button
+				id="openitem-save-add"
+				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowOpenItem(window)"
+				data-l10n-id="pref-openitemtable-button-add"
+			/>
+			<br />
+			<html:button
+				id="openitem-save-button"
+				onclick="Zotero.__addonInstance__.prefsMenu.saveTableOpenItem(window)"
+				data-l10n-id="pref-openitemtable-button-save"
+			/>
+			<html:button
+				id="openitem-reset-button"
+				onclick="Zotero.__addonInstance__.prefsMenu.resetTableOpenItem(window)"
+				data-l10n-id="pref-openitemtable-button-reset"
+			/>
+		</html:table>
+	</groupbox>
+</vbox>
+<vbox class="main-section">
 	<html:label
 		data-l10n-id="pref-help"
 		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'

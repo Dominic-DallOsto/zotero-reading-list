@@ -34,4 +34,3 @@ Under Edit -> Settings -> Reading List you can configure the following options
 | Custom Read Statuses and Icons[^1]   | Choose custom Read Status names and icons. Keyboard shortcuts will work up to Alt+9. Note: if you delete a read status, it will remain assigned to any items - you'll need to delete / change their statuses manually. |
 
 [^1]: Only supported in the Zotero 7 version of the extension
-
