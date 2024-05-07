@@ -270,7 +270,7 @@ export default class ZoteroReadingList {
 					}
 				},
 				true,
-			) as symbol,
+			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(LABEL_NEW_ITEMS_PREF),
 				(value: boolean) => {
@@ -281,7 +281,7 @@ export default class ZoteroReadingList {
 					}
 				},
 				true,
-			) as symbol,
+			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(LABEL_ITEMS_WHEN_OPENING_FILE_PREF),
 				(value: boolean) => {
@@ -292,7 +292,7 @@ export default class ZoteroReadingList {
 					}
 				},
 				true,
-			) as symbol,
+			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(STATUS_NAME_AND_ICON_LIST_PREF),
 				(value: string) => {
@@ -306,7 +306,7 @@ export default class ZoteroReadingList {
 					void this.addReadStatusColumn();
 				},
 				true,
-			) as symbol,
+			),
 		];
 	}
 
