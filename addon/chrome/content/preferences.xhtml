@@ -94,7 +94,23 @@
 					></html:th>
 				</html:tr>
 			</html:thead>
-			<html:tbody id="openitem-table-body"> </html:tbody>
+			<html:tbody id="openitem-table-body">
+				<html:tr id="openitem-table-hidden-row" hidden="true">
+					<html:td>
+						<menulist native="true">
+							<menupopup> </menupopup>
+						</menulist>
+					</html:td>
+					<html:td>
+						<menulist native="true">
+							<menupopup> </menupopup>
+						</menulist>
+					</html:td>
+					<html:td>
+						<html:button>🗑</html:button>
+					</html:td>
+				</html:tr>
+			</html:tbody>
 			<html:button
 				id="openitem-save-add"
 				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowOpenItem(window)"

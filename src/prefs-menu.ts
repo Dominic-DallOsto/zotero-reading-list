@@ -11,6 +11,12 @@ import {
 } from "./modules/overlay";
 import { getPref, setPref } from "./utils/prefs";
 
+const STATUS_NAMES_TABLE_BODY = "statusnames-table-body";
+const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
+const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
+const OPEN_ITEM_CHECKBOX =
+	"zotero-prefpane-zotero-reading-list-label-items-when-opening-file";
+
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
 	setTableOpenItem(window);
@@ -18,7 +24,7 @@ function onPrefsLoad(window: Window) {
 
 function setTableStatusNames(window: Window) {
 	const tableBodyStatusNames = window.document.getElementById(
-		"statusnames-table-body",
+		STATUS_NAMES_TABLE_BODY,
 	);
 	for (const row of createTableRowsStatusNames()) {
 		tableBodyStatusNames?.append(row);
@@ -26,10 +32,9 @@ function setTableStatusNames(window: Window) {
 }
 
 function setTableOpenItem(window: Window) {
-	const tableBodyOpenItem = window.document.getElementById(
-		"openitem-table-body",
-	);
-	for (const row of createTableRowsOpenItem()) {
+	const tableBodyOpenItem =
+		window.document.getElementById(OPEN_ITEM_TABLE_BODY);
+	for (const row of createTableRowsOpenItem(window)) {
 		tableBodyOpenItem?.append(row);
 	}
 	if (tableBodyOpenItem?.parentElement) {
@@ -40,9 +45,9 @@ function setTableOpenItem(window: Window) {
 }
 
 function setTableVisibilityOpenItem(window: Window) {
-	const tableBody = window.document.getElementById("openitem-table-body");
+	const tableBody = window.document.getElementById(OPEN_ITEM_TABLE_BODY);
 	const checkBox = window.document.getElementById(
-		"zotero-prefpane-zotero-reading-list-label-items-when-opening-file",
+		OPEN_ITEM_CHECKBOX,
 	) as HTMLInputElement;
 	if (tableBody?.parentElement && checkBox) {
 		tableBody.parentElement.hidden = checkBox.checked;
@@ -50,79 +55,80 @@ function setTableVisibilityOpenItem(window: Window) {
 }
 
 function addTableRowStatusNames(window: Window) {
-	const tableBody = window.document.getElementById("statusnames-table-body");
-	tableBody?.append(createTableRowStatusNames("", ""));
+	window.document
+		.getElementById(STATUS_NAMES_TABLE_BODY)
+		?.append(createTableRowStatusNames("", ""));
 }
 
 function addTableRowOpenItem(window: Window) {
-	const tableBody = window.document.getElementById("openitem-table-body");
-	tableBody?.append(createTableRowOpenItem("", ""));
+	window.document
+		.getElementById(OPEN_ITEM_TABLE_BODY)
+		?.append(createTableRowOpenItem(window, "", ""));
 }
 
 function resetTableStatusNames(window: Window) {
 	const tableRows = window.document.getElementById(
-		"statusnames-table-body",
+		STATUS_NAMES_TABLE_BODY,
 	)?.children;
-	if (tableRows != undefined) {
-		for (let i = tableRows.length - 1; i >= 0; i--) {
-			tableRows[i].remove();
-		}
-	}
+	Array.from(tableRows ?? []).map((row) => {
+		row.remove();
+	});
 	setPref(
 		STATUS_NAME_AND_ICON_LIST_PREF,
 		listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
 	);
 	setTableStatusNames(window);
+	// if we change the statuses, need to reset the status lists here
+	clearTableOpenItem(window);
+	setTableOpenItem(window);
 }
 
 function resetTableOpenItem(window: Window) {
-	const tableRows = window.document.getElementById(
-		"openitem-table-body",
-	)?.children;
-	if (tableRows != undefined) {
-		for (let i = tableRows.length - 1; i >= 0; i--) {
-			tableRows[i].remove();
-		}
-	}
 	setPref(
 		STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF,
 		listToPrefString(DEFAULT_STATUS_CHANGE_FROM, DEFAULT_STATUS_CHANGE_TO),
 	);
+	clearTableOpenItem(window);
 	setTableOpenItem(window);
+}
+
+function clearTableOpenItem(window: Window) {
+	const tableRows =
+		window.document.getElementById(OPEN_ITEM_TABLE_BODY)?.children;
+	// leave the hidden row there so we can still clone it
+	(Array.from(tableRows ?? []) as HTMLTableRowElement[])
+		.filter((row) => !row.hidden)
+		.map((row) => row.remove());
 }
 
 function saveTableStatusNames(window: Window) {
 	const tableRows = window.document.getElementById(
-		"statusnames-table-body",
+		STATUS_NAMES_TABLE_BODY,
 	)?.children;
 	const names: string[] = [];
 	const icons: string[] = [];
-	if (tableRows != undefined) {
-		for (let i = 0; i < tableRows.length; i++) {
-			icons.push(
-				(tableRows[i].children[0].firstChild as HTMLInputElement).value,
-			);
-			names.push(
-				(tableRows[i].children[1].firstChild as HTMLInputElement).value,
-			);
-		}
+	for (const row of tableRows ?? []) {
+		icons.push((row.children[0].firstChild as HTMLInputElement).value);
+		names.push((row.children[1].firstChild as HTMLInputElement).value);
 	}
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
+	// if we change the statuses, need to reset the status lists here
+	clearTableOpenItem(window);
+	setTableOpenItem(window);
 }
 
 function saveTableOpenItem(window: Window) {
-	const tableRows = window.document.getElementById(
-		"openitem-table-body",
-	)?.children;
+	const tableRows =
+		window.document.getElementById(OPEN_ITEM_TABLE_BODY)?.children;
 	const statusesFrom: string[] = [];
 	const statusesTo: string[] = [];
-	if (tableRows != undefined) {
-		for (let i = 0; i < tableRows.length; i++) {
+	for (const row of tableRows ?? []) {
+		if (!(row as HTMLTableRowElement).hidden) {
 			statusesFrom.push(
-				(tableRows[i].children[0].firstChild as HTMLInputElement).value,
+				(row.children[0].firstChild as HTMLInputElement).value,
 			);
 			statusesTo.push(
-				(tableRows[i].children[1].firstChild as HTMLInputElement).value,
+				(row.children[1].firstChild as HTMLInputElement).value,
 			);
 		}
 	}
@@ -163,12 +169,12 @@ function createTableRowsStatusNames() {
 	);
 }
 
-function createTableRowsOpenItem() {
+function createTableRowsOpenItem(window: Window) {
 	const [statusFrom, statusTo] = prefStringToList(
 		getPref(STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF) as string,
 	);
 	return statusFrom.map((statusName, index) =>
-		createTableRowOpenItem(statusName, statusTo[index]),
+		createTableRowOpenItem(window, statusName, statusTo[index]),
 	);
 }
 
@@ -213,32 +219,40 @@ function createTableRowStatusNames(icon: string, name: string) {
 	return row;
 }
 
-function createTableRowOpenItem(icon: string, name: string) {
-	const row = createElement("html:tr");
+function createTableRowOpenItem(
+	window: Window,
+	statusFrom: string,
+	statusTo: string,
+) {
+	const row = window.document
+		.getElementById(OPEN_ITEM_HIDDEN_ROW)
+		?.cloneNode(true) as HTMLTableRowElement;
+	row.id = "";
+	row.hidden = false;
 
-	const fromCell = createElement("html:td");
-	const fromInput = createElement("html:input") as HTMLInputElement;
-	fromInput.type = "text";
-	fromInput.value = icon;
-	fromCell.append(fromInput);
+	const fromMenuList = row?.childNodes[0]?.firstChild as XUL.MenuList;
+	const toMenuList = row?.childNodes[1]?.firstChild as XUL.MenuList;
+	const deleteButton = row?.childNodes[2]?.firstChild as HTMLButtonElement;
 
-	const toCell = createElement("html:td");
-	const toInput = createElement("html:input") as HTMLInputElement;
-	toInput.type = "text";
-	toInput.value = name;
-	toCell.append(toInput);
+	const [statusNames, statusIcons] = prefStringToList(
+		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+	);
 
-	const settings = createElement("html:td");
-	const binButton = createElement("html:button");
-	binButton.textContent = "🗑";
-	binButton.onclick = () => {
-		row.remove();
-	};
-	settings.append(binButton);
+	statusNames.forEach((statusName, index) => {
+		const statusString = `${statusIcons[index]} ${statusName}`;
+		fromMenuList.appendItem(statusString, statusName);
+		toMenuList.appendItem(statusString, statusName);
+	});
 
-	row.append(fromCell);
-	row.append(toCell);
-	row.append(settings);
+	fromMenuList.selectedIndex = statusNames.indexOf(statusFrom);
+	toMenuList.selectedIndex = statusNames.indexOf(statusTo);
+
+	if (row && deleteButton) {
+		deleteButton.onclick = () => {
+			row.remove();
+		};
+	}
+
 	return row;
 }
 
