@@ -78,20 +78,27 @@ function resetTableStatusNames(window: Window) {
 		listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
 	);
 	setTableStatusNames(window);
+	// if we change the statuses, need to reset the status lists here
+	clearTableOpenItem(window);
+	setTableOpenItem(window);
 }
 
 function resetTableOpenItem(window: Window) {
+	setPref(
+		STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF,
+		listToPrefString(DEFAULT_STATUS_CHANGE_FROM, DEFAULT_STATUS_CHANGE_TO),
+	);
+	clearTableOpenItem(window);
+	setTableOpenItem(window);
+}
+
+function clearTableOpenItem(window: Window) {
 	const tableRows =
 		window.document.getElementById(OPEN_ITEM_TABLE_BODY)?.children;
 	// leave the hidden row there so we can still clone it
 	(Array.from(tableRows ?? []) as HTMLTableRowElement[])
 		.filter((row) => !row.hidden)
 		.map((row) => row.remove());
-	setPref(
-		STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF,
-		listToPrefString(DEFAULT_STATUS_CHANGE_FROM, DEFAULT_STATUS_CHANGE_TO),
-	);
-	setTableOpenItem(window);
 }
 
 function saveTableStatusNames(window: Window) {
@@ -105,6 +112,9 @@ function saveTableStatusNames(window: Window) {
 		names.push((row.children[1].firstChild as HTMLInputElement).value);
 	}
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
+	// if we change the statuses, need to reset the status lists here
+	clearTableOpenItem(window);
+	setTableOpenItem(window);
 }
 
 function saveTableOpenItem(window: Window) {
