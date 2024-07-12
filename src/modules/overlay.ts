@@ -508,6 +508,9 @@ export default class ZoteroReadingList {
 		const possibleKeyCombinations = [
 			...Array(Math.min(8, this.statusNames.length)).keys(),
 		].map((num) => (num + 1).toString());
+		// On Mac, Alt is equivalent to Opt but this changes the key of the event
+		// eg. 1 -> ¡
+		// see #9
 		const possibleKeyCombinationsMac = [
 			"¡",
 			"™",
@@ -519,6 +522,7 @@ export default class ZoteroReadingList {
 			"•",
 			"ª",
 		].slice(0, possibleKeyCombinations.length);
+		const clearStatusKeyCombinations = ["0", "º"];
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
@@ -536,9 +540,7 @@ export default class ZoteroReadingList {
 						possibleKeyCombinationsMac.indexOf(keyboardEvent.key)
 					];
 				void setSelectedItemsReadStatus("item", selectedStatus);
-			} else if (keyboardEvent.key == "0") {
-				void clearSelectedItemsReadStatus("item");
-			} else if (keyboardEvent.key == "º") {
+			} else if (clearStatusKeyCombinations.includes(keyboardEvent.key)) {
 				void clearSelectedItemsReadStatus("item");
 			}
 		}
