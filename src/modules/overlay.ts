@@ -133,16 +133,12 @@ function setItemsReadStatus(items: Zotero.Item[], statusName: string) {
 	}
 }
 
-async function setSelectedItemsReadStatus(
-	menuName: string,
-	statusName: string,
-) {
-	const items = await getSelectedItems(menuName);
-	setItemsReadStatus(items, statusName);
+function setSelectedItemsReadStatus(statusName: string) {
+	setItemsReadStatus(getSelectedItems(), statusName);
 }
 
-async function clearSelectedItemsReadStatus(menuName: string) {
-	const items = await getSelectedItems(menuName);
+function clearSelectedItemsReadStatus() {
+	const items = getSelectedItems();
 	for (const item of items) {
 		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
 		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
@@ -150,41 +146,12 @@ async function clearSelectedItemsReadStatus(menuName: string) {
 	}
 }
 
-/******************************************/
-// Functions for item tree batch actions
-/******************************************/
 /**
  * Return selected regular items
- * @param {String} menuName Zotero popup menu firing the action: 'item' or 'collection'
  * @return {Array} Array of selected regular items
  */
-async function getSelectedItems(menuName: string) {
-	let items: Zotero.Item[] = [];
-	switch (menuName) {
-		case "item": {
-			items = ZoteroPane.getSelectedItems();
-			break;
-		}
-		case "collection": {
-			const collectionTreeRow = ZoteroPane.getCollectionTreeRow();
-			if (collectionTreeRow) {
-				// enable type checks when zotero types file is updated
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-				if (collectionTreeRow.isCollection()) {
-					const collection = ZoteroPane.getSelectedCollection();
-					if (collection) {
-						items = collection.getChildItems();
-					}
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-				} else if (collectionTreeRow.isLibrary()) {
-					const libraryID = ZoteroPane.getSelectedLibraryID();
-					items = await Zotero.Items.getAll(libraryID);
-				}
-				break;
-			}
-		}
-	}
-	return items.filter((item) => item.isRegularItem());
+function getSelectedItems() {
+	return ZoteroPane.getSelectedItems().filter((item) => item.isRegularItem());
 }
 
 export function prefStringToList(
@@ -405,7 +372,7 @@ export default class ZoteroReadingList {
 					tag: "menuitem",
 					label: getString("status-none"),
 					commandListener: (event) =>
-						void clearSelectedItemsReadStatus("item"),
+						void clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
 			].concat(
 				this.statusNames.map((status_name: string) => {
@@ -413,15 +380,12 @@ export default class ZoteroReadingList {
 						tag: "menuitem",
 						label: status_name,
 						commandListener: (event) =>
-							setSelectedItemsReadStatus("item", status_name),
+							setSelectedItemsReadStatus(status_name),
 					};
 				}),
 			),
 			getVisibility: (element, event) => {
-				const items = ZoteroPane.getSelectedItems().filter((item) =>
-					item.isRegularItem(),
-				);
-				return items.length > 0;
+				return getSelectedItems().length > 0;
 			},
 		});
 	}
@@ -540,15 +504,15 @@ export default class ZoteroReadingList {
 					this.statusNames[
 						possibleKeyCombinations.indexOf(keyboardEvent.key)
 					];
-				void setSelectedItemsReadStatus("item", selectedStatus);
+				void setSelectedItemsReadStatus(selectedStatus);
 			} else if (possibleKeyCombinationsMac.includes(keyboardEvent.key)) {
 				const selectedStatus =
 					this.statusNames[
 						possibleKeyCombinationsMac.indexOf(keyboardEvent.key)
 					];
-				void setSelectedItemsReadStatus("item", selectedStatus);
+				void setSelectedItemsReadStatus(selectedStatus);
 			} else if (clearStatusKeyCombinations.includes(keyboardEvent.key)) {
-				void clearSelectedItemsReadStatus("item");
+				void clearSelectedItemsReadStatus();
 			}
 		}
 	};
