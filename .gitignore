@@ -7,3 +7,4 @@ yarn.lock
 zotero-cmd.json
 .DS_Store
 .vscode
+debug.log
