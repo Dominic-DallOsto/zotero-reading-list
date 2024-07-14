@@ -417,6 +417,12 @@ export default class ZoteroReadingList {
 					};
 				}),
 			),
+			getVisibility: (element, event) => {
+				const items = ZoteroPane.getSelectedItems().filter((item) =>
+					item.isRegularItem(),
+				);
+				return items.length > 0;
+			},
 		});
 	}
 
