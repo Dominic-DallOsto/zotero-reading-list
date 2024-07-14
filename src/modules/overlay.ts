@@ -547,12 +547,20 @@ export default class ZoteroReadingList {
 	};
 
 	addKeyboardShortcutListener() {
+		// disable Zotero's column sorting (also uses Alt+Num shortcut keys) #30
+		document
+			.getElementById("sortSubmenuKeys")
+			?.setAttribute("disabled", "true");
 		// different approach compared to Zutilo https://github.com/wshanks/Zutilo/issues/71#issuecomment-360986808
 		document.addEventListener("keydown", this.keyboardEventHandler);
 	}
 
 	removeKeyboardShortcutListener() {
 		document.removeEventListener("keydown", this.keyboardEventHandler);
+		// reenable Zotero's column sorting
+		document
+			.getElementById("sortSubmenuKeys")
+			?.setAttribute("disabled", "false");
 	}
 
 	removeReadStatusFromExports() {
