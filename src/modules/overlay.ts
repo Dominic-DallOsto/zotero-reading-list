@@ -1,7 +1,7 @@
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
-import { patch as $patch$ } from "../utils/patcher";
+import { patch as $patch$, unpatch as $unpatch$ } from "../utils/patcher";
 import {
 	setPref,
 	getPref,
@@ -238,6 +238,7 @@ export default class ZoteroReadingList {
 		this.removeNewItemLabeller();
 		this.removeFileOpenedListener();
 		this.removePreferenceUpdateObservers();
+		this.unpatchExportFunction();
 	}
 
 	initialiseDefaultPreferences() {
@@ -597,5 +598,9 @@ export default class ZoteroReadingList {
 					return serializedItem;
 				},
 		);
+	}
+
+	unpatchExportFunction() {
+		$unpatch$(Zotero.Utilities.Internal, "itemToExportFormat");
 	}
 }
