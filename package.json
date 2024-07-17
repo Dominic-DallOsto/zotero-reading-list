@@ -13,8 +13,8 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"start": "node scripts/server.mjs",
-		"build": "tsc --noEmit && node scripts/build.mjs production",
+		"start": "zotero-plugin serve",
+		"build": "tsc --noEmit && zotero-plugin build",
 		"stop": "node scripts/stop.mjs",
 		"lint": "prettier --write . && eslint . --ext .ts --fix",
 		"test": "echo \"Error: no test specified\" && exit 1",
@@ -47,6 +47,7 @@
 		"release-it": "^17.0.1",
 		"replace-in-file": "^7.0.2",
 		"typescript": "^5.3.3",
+		"zotero-plugin-scaffold": "^0.0.32",
 		"zotero-types": "^2.0.3"
 	},
 	"eslintConfig": {
@@ -100,7 +101,8 @@
 			"**/node_modules/**",
 			"**/scripts/**",
 			"**/*.js",
-			"**/*.bak"
+			"**/*.bak",
+			"zotero-plugin.config.ts"
 		]
 	},
 	"prettier": {
