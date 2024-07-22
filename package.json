@@ -47,8 +47,8 @@
 		"release-it": "^17.0.1",
 		"replace-in-file": "^7.0.2",
 		"typescript": "^5.3.3",
-		"zotero-plugin-scaffold": "^0.0.32",
-		"zotero-types": "^2.0.3"
+		"zotero-plugin-scaffold": "^0.0.33",
+		"zotero-types": "^2.1.0"
 	},
 	"eslintConfig": {
 		"env": {
