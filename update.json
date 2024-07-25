@@ -3,7 +3,7 @@
 		"reading-list@hotmail.com": {
 			"updates": [
 				{
-					"version": "1.3.5",
+					"version": "1.3.6",
 					"update_link": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest/download/zotero-reading-list.xpi",
 					"applications": {
 						"zotero": {
