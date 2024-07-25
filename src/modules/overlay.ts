@@ -8,6 +8,12 @@ import {
 	initialiseDefaultPref,
 	getPrefGlobalName,
 } from "../utils/prefs";
+import {
+	getItemExtraProperty,
+	setItemExtraProperty,
+	clearItemExtraProperty,
+	removeFieldValueFromExtraData,
+} from "../utils/extraField";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_COLUMN_NAME = "Read Status";
@@ -35,86 +41,9 @@ export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
 	"status-change-on-open-item-list";
 
-function isString(argument: any): argument is string {
-	return typeof argument == "string";
-}
-
-function getFieldValueFromExtraData(extraData: string, fieldName: string) {
-	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
-	return extraData
-		.split(/\n/g)
-		.map((line: string) => {
-			const lineMatch = line.match(pattern);
-			if (lineMatch)
-				return lineMatch[1].trim(); //what our capture group found, with whitespace trimmed
-			else return false;
-		})
-		.filter(isString);
-}
-
-function removeFieldValueFromExtraData(extraData: string, fieldName: string) {
-	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
-	return extraData
-		.split(/\n/g)
-		.filter((line) => !line.match(pattern))
-		.join("\n");
-}
-
-/**
- * Return values for extra field fields.
- * @param {Zotero.Item} item - A Zotero item.
- * @param {string} fieldName - The extra field field name desired.
- * @returns {String[]} values - Array of values for the desired extra field field.
- */
-function getItemExtraProperty(item: Zotero.Item, fieldName: string): string[] {
-	return getFieldValueFromExtraData(item.getField("extra"), fieldName);
-}
-
-/**
- * Set field value in extra field item.
- * It sets: therefore, if already exists, replaces
- * @param {Zotero.Item} item - A Zotero item.
- * @param {string} fieldName - The name of the extra field to be set.
- * @param {String[]} values - An array of values for the field to be set.
- */
-function setItemExtraProperty(
-	item: Zotero.Item,
-	fieldName: string,
-	values: string | string[],
-) {
-	if (!Array.isArray(values)) values = [values];
-	let restOfExtraField = removeFieldValueFromExtraData(
-		item.getField("extra"),
-		fieldName,
-	);
-
-	for (const value of values) {
-		if (value) {
-			// make sure there are no new lines!
-			restOfExtraField += `\n${fieldName}: ${value.trim()}`;
-		}
-	}
-	item.setField("extra", restOfExtraField);
-}
-
-/**
- * Remove field value in extra field item.
- * @param {Zotero.Item} item - A Zotero item.
- * @param {string} fieldName - The name of the extra field to be set.
- */
-function clearItemExtraProperty(item: Zotero.Item, fieldName: string) {
-	item.setField(
-		"extra",
-		removeFieldValueFromExtraData(item.getField("extra"), fieldName),
-	);
-}
-
 function getItemReadStatus(item: Zotero.Item) {
 	const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-	if (statusField.length == 1) {
-		return statusField[0];
-	}
-	return "";
+	return statusField.length == 1 ? statusField[0] : "";
 }
 
 function setItemReadStatus(item: Zotero.Item, statusName: string) {
@@ -148,7 +77,6 @@ function clearSelectedItemsReadStatus() {
 
 /**
  * Return selected regular items
- * @return {Array} Array of selected regular items
  */
 function getSelectedItems() {
 	return ZoteroPane.getSelectedItems().filter((item) => item.isRegularItem());
