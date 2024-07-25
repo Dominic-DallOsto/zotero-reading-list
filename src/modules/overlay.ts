@@ -296,7 +296,7 @@ export default class ZoteroReadingList {
 				label: READ_STATUS_COLUMN_NAME,
 				pluginID: config.addonID,
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
-					return getItemReadStatus(item);
+					return item.isRegularItem() ? getItemReadStatus(item) : "";
 				},
 				// if we put the icon in the dataprovider, it only gets updated when the read status changes
 				// putting the icon in the render function updates when the row is clicked or column is sorted
@@ -396,13 +396,15 @@ export default class ZoteroReadingList {
 
 	addNewItemLabeller() {
 		const addItemHandler = (
-			action: string,
-			type: string,
+			action: _ZoteroTypes.Notifier.Event,
+			type: _ZoteroTypes.Notifier.Type,
 			ids: string[] | number[],
-			extraData: any,
+			extraData: _ZoteroTypes.anyObj,
 		) => {
 			if (action == "add") {
-				const items = Zotero.Items.get(ids);
+				const items = Zotero.Items.get(ids).filter((item) =>
+					item.isRegularItem(),
+				);
 
 				setItemsReadStatus(items, "New");
 			}
