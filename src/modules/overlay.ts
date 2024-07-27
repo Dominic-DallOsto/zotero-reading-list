@@ -40,40 +40,7 @@ export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
 	"status-change-on-open-item-list";
-
-function getItemReadStatus(item: Zotero.Item) {
-	const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-	return statusField.length == 1 ? statusField[0] : "";
-}
-
-function setItemReadStatus(item: Zotero.Item, statusName: string) {
-	setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
-	setItemExtraProperty(
-		item,
-		READ_DATE_EXTRA_FIELD,
-		new Date(Date.now()).toISOString(),
-	);
-	void item.saveTx();
-}
-
-function setItemsReadStatus(items: Zotero.Item[], statusName: string) {
-	for (const item of items) {
-		setItemReadStatus(item, statusName);
-	}
-}
-
-function setSelectedItemsReadStatus(statusName: string) {
-	setItemsReadStatus(getSelectedItems(), statusName);
-}
-
-function clearSelectedItemsReadStatus() {
-	const items = getSelectedItems();
-	for (const item of items) {
-		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-		void item.saveTx();
-	}
-}
+export const SET_READ_STATUS_TAGS_PREF = "set-read-status-tags";
 
 /**
  * Return selected regular items
@@ -152,6 +119,7 @@ export default class ZoteroReadingList {
 				DEFAULT_STATUS_CHANGE_TO,
 			),
 		);
+		initialiseDefaultPref(SET_READ_STATUS_TAGS_PREF, false);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -224,7 +192,9 @@ export default class ZoteroReadingList {
 				label: READ_STATUS_COLUMN_NAME,
 				pluginID: config.addonID,
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
-					return item.isRegularItem() ? getItemReadStatus(item) : "";
+					return item.isRegularItem()
+						? this.getItemReadStatus(item)
+						: "";
 				},
 				// if we put the icon in the dataprovider, it only gets updated when the read status changes
 				// putting the icon in the render function updates when the row is clicked or column is sorted
@@ -300,7 +270,7 @@ export default class ZoteroReadingList {
 					tag: "menuitem",
 					label: getString("status-none"),
 					commandListener: (event) =>
-						void clearSelectedItemsReadStatus(),
+						void this.clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
 			].concat(
 				this.statusNames.map((status_name: string) => {
@@ -308,7 +278,7 @@ export default class ZoteroReadingList {
 						tag: "menuitem",
 						label: status_name,
 						commandListener: (event) =>
-							setSelectedItemsReadStatus(status_name),
+							this.setSelectedItemsReadStatus(status_name),
 					};
 				}),
 			),
@@ -334,7 +304,7 @@ export default class ZoteroReadingList {
 					item.isRegularItem(),
 				);
 
-				setItemsReadStatus(items, "New");
+				this.setItemsReadStatus(items, "New");
 			}
 		};
 
@@ -375,10 +345,13 @@ export default class ZoteroReadingList {
 
 				for (const item of items) {
 					const itemReadStatusIndex = statusFrom.indexOf(
-						getItemReadStatus(item),
+						this.getItemReadStatus(item),
 					);
 					if (itemReadStatusIndex > -1) {
-						setItemReadStatus(item, statusTo[itemReadStatusIndex]);
+						this.setItemReadStatus(
+							item,
+							statusTo[itemReadStatusIndex],
+						);
 					}
 				}
 			}
@@ -434,15 +407,15 @@ export default class ZoteroReadingList {
 					this.statusNames[
 						possibleKeyCombinations.indexOf(keyboardEvent.key)
 					];
-				void setSelectedItemsReadStatus(selectedStatus);
+				this.setSelectedItemsReadStatus(selectedStatus);
 			} else if (possibleKeyCombinationsMac.includes(keyboardEvent.key)) {
 				const selectedStatus =
 					this.statusNames[
 						possibleKeyCombinationsMac.indexOf(keyboardEvent.key)
 					];
-				void setSelectedItemsReadStatus(selectedStatus);
+				this.setSelectedItemsReadStatus(selectedStatus);
 			} else if (clearStatusKeyCombinations.includes(keyboardEvent.key)) {
-				void clearSelectedItemsReadStatus();
+				this.clearSelectedItemsReadStatus();
 			}
 		}
 	};
@@ -502,5 +475,52 @@ export default class ZoteroReadingList {
 
 	unpatchExportFunction() {
 		$unpatch$(Zotero.Utilities.Internal, "itemToExportFormat");
+	}
+
+	getItemReadStatus(item: Zotero.Item) {
+		const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+		return statusField.length == 1 ? statusField[0] : "";
+	}
+
+	setItemReadStatus(item: Zotero.Item, statusName: string) {
+		setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
+		setItemExtraProperty(
+			item,
+			READ_DATE_EXTRA_FIELD,
+			new Date(Date.now()).toISOString(),
+		);
+		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+			this.clearItemReadStatusTags(item);
+			item.setTags([{ tag: statusName, type: 1 }]);
+		}
+		void item.saveTx();
+	}
+
+	setItemsReadStatus(items: Zotero.Item[], statusName: string) {
+		for (const item of items) {
+			this.setItemReadStatus(item, statusName);
+		}
+	}
+
+	setSelectedItemsReadStatus(statusName: string) {
+		this.setItemsReadStatus(getSelectedItems(), statusName);
+	}
+
+	clearSelectedItemsReadStatus() {
+		const items = getSelectedItems();
+		for (const item of items) {
+			clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+			clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
+			if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+				this.clearItemReadStatusTags(item);
+			}
+			void item.saveTx();
+		}
+	}
+
+	clearItemReadStatusTags(item: Zotero.Item) {
+		item.getTags()
+			.filter((tag) => this.statusNames.indexOf(tag.tag) != -1)
+			.forEach((tag) => item.removeTag(tag.tag));
 	}
 }
