@@ -51,6 +51,7 @@ export const MODIFIER_MASK_ALT = 1;
 export const MODIFIER_MASK_CTRL = 2;
 export const MODIFIER_MASK_SHIFT = 4;
 export const MODIFIER_MASK_META = 8;
+export const SET_READ_STATUS_TAGS_PREF = "set-read-status-tags";
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
@@ -363,6 +364,7 @@ export default class ZoteroReadingList {
 				LABEL_NEW_ITEMS_PREF_DISABLED,
 			);
 		}
+		initialiseDefaultPref(SET_READ_STATUS_TAGS_PREF, false);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -459,7 +461,9 @@ export default class ZoteroReadingList {
 					: undefined,
 				pluginID: "", //config.addonID,
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
-					return item.isRegularItem() ? getItemReadStatus(item) : "";
+					return item.isRegularItem()
+						? this.getItemReadStatus(item)
+						: "";
 				},
 				// if we put the icon in the dataprovider, it only gets updated when the read status changes
 				// putting the icon in the render function updates when the row is clicked or column is sorted
@@ -548,7 +552,7 @@ export default class ZoteroReadingList {
 					tag: "menuitem",
 					label: getString("status-none"),
 					commandListener: (event) =>
-						void clearSelectedItemsReadStatus(),
+						void this.clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
 			].concat(
 				this.statusNames.map((status_name: string) => {
@@ -556,7 +560,7 @@ export default class ZoteroReadingList {
 						tag: "menuitem",
 						label: this.formatStatusName(status_name),
 						commandListener: (event) =>
-							setSelectedItemsReadStatus(status_name),
+							this.setSelectedItemsReadStatus(status_name),
 					};
 				}),
 			),
@@ -627,10 +631,13 @@ export default class ZoteroReadingList {
 
 				for (const item of items) {
 					const itemReadStatusIndex = statusFrom.indexOf(
-						getItemReadStatus(item),
+						this.getItemReadStatus(item),
 					);
 					if (itemReadStatusIndex > -1) {
-						setItemReadStatus(item, statusTo[itemReadStatusIndex]);
+						this.setItemReadStatus(
+							item,
+							statusTo[itemReadStatusIndex],
+						);
 					}
 				}
 			}
@@ -763,5 +770,52 @@ export default class ZoteroReadingList {
 
 	unpatchExportFunction() {
 		$unpatch$(Zotero.Utilities.Internal, "itemToExportFormat");
+	}
+
+	getItemReadStatus(item: Zotero.Item) {
+		const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+		return statusField.length == 1 ? statusField[0] : "";
+	}
+
+	setItemReadStatus(item: Zotero.Item, statusName: string) {
+		setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
+		setItemExtraProperty(
+			item,
+			READ_DATE_EXTRA_FIELD,
+			new Date(Date.now()).toISOString(),
+		);
+		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+			this.clearItemReadStatusTags(item);
+			item.setTags([{ tag: statusName, type: 1 }]);
+		}
+		void item.saveTx();
+	}
+
+	setItemsReadStatus(items: Zotero.Item[], statusName: string) {
+		for (const item of items) {
+			this.setItemReadStatus(item, statusName);
+		}
+	}
+
+	setSelectedItemsReadStatus(statusName: string) {
+		this.setItemsReadStatus(getSelectedItems(), statusName);
+	}
+
+	clearSelectedItemsReadStatus() {
+		const items = getSelectedItems();
+		for (const item of items) {
+			clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+			clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
+			if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+				this.clearItemReadStatusTags(item);
+			}
+			void item.saveTx();
+		}
+	}
+
+	clearItemReadStatusTags(item: Zotero.Item) {
+		item.getTags()
+			.filter((tag) => this.statusNames.indexOf(tag.tag) != -1)
+			.forEach((tag) => item.removeTag(tag.tag));
 	}
 }
