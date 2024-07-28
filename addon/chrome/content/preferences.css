@@ -1,7 +1,9 @@
 /* Normally need to restart Zotero for these to take effect */
 
 /* Add, save, reset buttons */
-table > button {
+/* readstatus <-> tags buttons */
+table > button,
+hbox > button {
 	margin: 5px;
 }
 
