@@ -16,7 +16,7 @@ invalid-status-names-description = Custom reading statuses and icons cannot cont
 
 autolabelnewitems-disabled = Disabled
 enable-tag-synchronisation-title = Update tags to match read statuses?
-enable-tag-synchronisation-prompt = You just enabled read status and tag synchronisation. Do you want to update all items' tags to match their read statuses?
+enable-tag-synchronisation-prompt = You just enabled tag and read status synchronisation. Do you want to update all items' tags to match their read statuses?
 tags-to-readstatus-message-progress = { $numItems ->
         [one] Updating item read statuses to match tags for { $numItems } item in library
        *[other] Updating item read statuses to match tags for { $numItems } items in library

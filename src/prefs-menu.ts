@@ -24,7 +24,7 @@ const OPEN_ITEM_CHECKBOX =
 const LABEL_NEW_ITEMS_MENU_LIST = "automatically-label-new-items-menulist";
 
 const TAG_SYNCHRONISATION_CHECKBOX =
-	"zotero-prefpane-zotero-reading-list-set-read-status-tags";
+	"zotero-prefpane-zotero-reading-list-tag-synchronisation";
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
 	setTableOpenItem(window);

@@ -46,7 +46,7 @@ export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
 	"status-change-on-open-item-list";
-export const SET_READ_STATUS_TAGS_PREF = "set-read-status-tags";
+export const TAG_SYNCHRONISATION = "tag-synchronisation";
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
@@ -207,7 +207,7 @@ export default class ZoteroReadingList {
 				LABEL_NEW_ITEMS_PREF_DISABLED,
 			);
 		}
-		initialiseDefaultPref(SET_READ_STATUS_TAGS_PREF, false);
+		initialiseDefaultPref(TAG_SYNCHRONISATION, false);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -620,7 +620,7 @@ export default class ZoteroReadingList {
 			READ_DATE_EXTRA_FIELD,
 			new Date(Date.now()).toISOString(),
 		);
-		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+		if (getPref(TAG_SYNCHRONISATION)) {
 			this.setItemReadStatusTag(item, statusName, false);
 		}
 		if (save) {
@@ -653,7 +653,7 @@ export default class ZoteroReadingList {
 	clearItemReadStatus(item: Zotero.Item) {
 		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
 		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+		if (getPref(TAG_SYNCHRONISATION)) {
 			this.clearItemReadStatusTags(item);
 		}
 		void item.saveTx();
