@@ -3,8 +3,6 @@ import { config } from "../package.json";
 import { initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
 
-let zoteroReadingList: ZoteroReadingList;
-
 async function onStartup() {
 	await Promise.all([
 		Zotero.initializationPromise,
@@ -28,12 +26,12 @@ async function onStartup() {
 async function onMainWindowLoad(win: Window): Promise<void> {
 	// Create ztoolkit for every window
 	addon.data.ztoolkit = createZToolkit();
-	zoteroReadingList = new ZoteroReadingList();
+	addon.data.zoteroReadingListOverlay = new ZoteroReadingList();
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
 async function onMainWindowUnload(win: Window): Promise<void> {
-	zoteroReadingList.unload();
+	addon.data.zoteroReadingListOverlay?.unload();
 	ztoolkit.unregisterAll();
 	addon.data.dialog?.window?.close();
 }
