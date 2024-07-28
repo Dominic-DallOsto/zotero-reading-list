@@ -10,13 +10,16 @@ import {
 	listToPrefString,
 } from "./modules/overlay";
 import { getPref, setPref } from "./utils/prefs";
+import { config } from "../package.json";
+import { getString } from "./utils/locale";
 
 const STATUS_NAMES_TABLE_BODY = "statusnames-table-body";
 const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
 const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
 const OPEN_ITEM_CHECKBOX =
 	"zotero-prefpane-zotero-reading-list-label-items-when-opening-file";
-
+const TAG_SYNCHRONISATION_CHECKBOX =
+	"zotero-prefpane-zotero-reading-list-set-read-status-tags";
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
 	setTableOpenItem(window);
@@ -256,6 +259,28 @@ function createTableRowOpenItem(
 	return row;
 }
 
+function tagSynchronisationToggled(window: Window) {
+	const checkBox = window.document.getElementById(
+		TAG_SYNCHRONISATION_CHECKBOX,
+	) as HTMLInputElement;
+	// checkBox.checked doesn't change until after this event
+	if (!checkBox.checked) {
+		if (
+			Services.prompt.confirm(
+				window as mozIDOMWindowProxy,
+				getString("enable-tag-synchronisation-title"),
+				getString("enable-tag-synchronisation-prompt"),
+			)
+		) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			void Zotero[
+				config.addonInstance
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			].data.zoteroReadingListOverlay.updateAllItemsTagsToMatchReadStatuses();
+		}
+	}
+}
+
 export default {
 	onPrefsLoad,
 	addTableRowStatusNames,
@@ -265,4 +290,5 @@ export default {
 	resetTableOpenItem,
 	saveTableOpenItem,
 	setTableVisibilityOpenItem,
+	tagSynchronisationToggled,
 };
