@@ -32,6 +32,10 @@ pref-statuslabeltable-button-reset = Reset to Default
 pref-keyboard-shortcut-capture-placeholder =
     .placeholder = Press shortcut to change
 
+pref-set-read-status-tags-title = Automatic Tags to Match Read Status
+pref-set-read-status-tags-button-tags-to-readstatus = Update Read Status to Match Tags
+pref-set-read-status-tags-button-readstatus-to-tags = Update Tags to Match Read Status
+
 pref-openitemtable-title = Custom Status Changes When Opening Item
 pref-openitemtable-header-statusfrom = Status From
 pref-openitemtable-header-statusto = Status To

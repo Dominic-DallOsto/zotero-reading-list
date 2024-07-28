@@ -1,12 +1,14 @@
 /* Normally need to restart Zotero for these to take effect */
 
 /* Add, save, reset buttons */
-#pref-statuslabeltable-buttons > button {
+#pref-statuslabeltable-buttons>button,
+/* readstatus <-> tags buttons */
+hbox>button {
 	margin: 5px;
 }
 
 /* Up, down, delete buttons in rows */
-td > button {
+td>button {
 	margin-left: 2px;
 	margin-right: 2px;
 	font-size: 120%;
