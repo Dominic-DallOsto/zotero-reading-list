@@ -111,6 +111,23 @@
 			<menupopup> </menupopup>
 		</menulist>
 	</groupbox>
+
+	<!-- Automatic Tagging -->
+	<groupbox>
+		<label>
+			<html:h2 data-l10n-id="pref-set-read-status-tags-title"></html:h2>
+		</label>
+		<checkbox id="zotero-prefpane-__addonRef__-set-read-status-tags"
+			preference="extensions.zotero.__addonRef__.set-read-status-tags" data-l10n-id="pref-set-read-status-tags" />
+		<hbox>
+			<html:button id="tags-to-readstatus"
+				onclick="Zotero.__addonInstance__.data.zoteroReadingListOverlay.updateAllItemsReadStatusesToMatchTags()"
+				data-l10n-id="pref-set-read-status-tags-button-tags-to-readstatus" />
+			<html:button id="readstatus-to-tags"
+				onclick="Zotero.__addonInstance__.data.zoteroReadingListOverlay.updateAllItemsTagsToMatchReadStatuses()"
+				data-l10n-id="pref-set-read-status-tags-button-readstatus-to-tags" />
+		</hbox>
+	</groupbox>
 </vbox>
 <vbox class="main-section">
 	<html:label data-l10n-id="pref-help"
