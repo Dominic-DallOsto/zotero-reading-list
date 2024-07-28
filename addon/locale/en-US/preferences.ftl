@@ -19,6 +19,10 @@ pref-statuslabeltable-button-add = Add New Status
 pref-statuslabeltable-button-save = Save
 pref-statuslabeltable-button-reset = Reset to Default
 
+pref-set-read-status-tags-title = Automatic Tags to Match Read Status
+pref-set-read-status-tags-button-tags-to-readstatus = Update Read Status to Match Tags
+pref-set-read-status-tags-button-readstatus-to-tags = Update Tags to Match Read Status
+
 pref-openitemtable-title = Custom Status Changes When Opening Item
 pref-openitemtable-header-statusfrom = Status From
 pref-openitemtable-header-statusto = Status To

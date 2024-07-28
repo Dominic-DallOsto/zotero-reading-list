@@ -20,6 +20,8 @@ const READ_STATUS_COLUMN_NAME = "Read Status";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 
+const TAG_TYPE_AUTOMATIC = 1;
+
 export const DEFAULT_STATUS_NAMES = [
 	"New",
 	"To Read",
@@ -193,7 +195,7 @@ export default class ZoteroReadingList {
 				pluginID: config.addonID,
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
 					return item.isRegularItem()
-						? this.getItemReadStatus(item)
+						? this.getItemReadStatus(item) || ""
 						: "";
 				},
 				// if we put the icon in the dataprovider, it only gets updated when the read status changes
@@ -345,7 +347,7 @@ export default class ZoteroReadingList {
 
 				for (const item of items) {
 					const itemReadStatusIndex = statusFrom.indexOf(
-						this.getItemReadStatus(item),
+						this.getItemReadStatus(item) || "",
 					);
 					if (itemReadStatusIndex > -1) {
 						this.setItemReadStatus(
@@ -479,10 +481,14 @@ export default class ZoteroReadingList {
 
 	getItemReadStatus(item: Zotero.Item) {
 		const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-		return statusField.length == 1 ? statusField[0] : "";
+		return statusField.length == 1 ? statusField[0] : undefined;
 	}
 
-	setItemReadStatus(item: Zotero.Item, statusName: string) {
+	setItemReadStatus(
+		item: Zotero.Item,
+		statusName: string,
+		save: boolean = true,
+	) {
 		setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
 		setItemExtraProperty(
 			item,
@@ -490,10 +496,23 @@ export default class ZoteroReadingList {
 			new Date(Date.now()).toISOString(),
 		);
 		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
-			this.clearItemReadStatusTags(item);
-			item.setTags([{ tag: statusName, type: 1 }]);
+			this.setItemReadStatusTag(item, statusName, false);
 		}
-		void item.saveTx();
+		if (save) {
+			void item.saveTx();
+		}
+	}
+
+	setItemReadStatusTag(
+		item: Zotero.Item,
+		statusName: string,
+		save: boolean = true,
+	) {
+		this.clearItemReadStatusTags(item);
+		item.setTags([{ tag: statusName, type: TAG_TYPE_AUTOMATIC }]);
+		if (save) {
+			void item.saveTx();
+		}
 	}
 
 	setItemsReadStatus(items: Zotero.Item[], statusName: string) {
@@ -506,15 +525,19 @@ export default class ZoteroReadingList {
 		this.setItemsReadStatus(getSelectedItems(), statusName);
 	}
 
+	clearItemReadStatus(item: Zotero.Item) {
+		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
+		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+			this.clearItemReadStatusTags(item);
+		}
+		void item.saveTx();
+	}
+
 	clearSelectedItemsReadStatus() {
 		const items = getSelectedItems();
 		for (const item of items) {
-			clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-			clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-			if (getPref(SET_READ_STATUS_TAGS_PREF)) {
-				this.clearItemReadStatusTags(item);
-			}
-			void item.saveTx();
+			this.clearItemReadStatus(item);
 		}
 	}
 
@@ -522,5 +545,97 @@ export default class ZoteroReadingList {
 		item.getTags()
 			.filter((tag) => this.statusNames.indexOf(tag.tag) != -1)
 			.forEach((tag) => item.removeTag(tag.tag));
+	}
+
+	getItemReadStatusTags(item: Zotero.Item) {
+		return item
+			.getTags()
+			.map((tag) => tag.tag)
+			.filter((tag) => this.statusNames.indexOf(tag) != -1);
+	}
+
+	createProgressPopup() {
+		const progressWindow = new Zotero.ProgressWindow();
+		progressWindow.changeHeadline("Zotero Reading List");
+		return progressWindow;
+	}
+
+	// update all items' read statuses to match their tags, or clear their read status if they have no tags
+	async updateAllItemsReadStatusesToMatchTags() {
+		const progressWindow = this.createProgressPopup();
+		const allItems = await Zotero.Items.getAll(
+			Zotero.Libraries.userLibraryID,
+		);
+		const progress = new progressWindow.ItemProgress(
+			"",
+			`Updating item statuses to match tags for ${allItems.length} items in library`,
+		);
+		progress.setProgress(0);
+		progressWindow.show();
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			await Zotero.DB.executeTransaction(() => {
+				for (const item of allItems) {
+					const readStatusTags = this.getItemReadStatusTags(item);
+					const currentReadStatus = this.getItemReadStatus(item);
+					const newReadStatus =
+						readStatusTags.length == 1
+							? readStatusTags[0]
+							: undefined;
+					if (newReadStatus && currentReadStatus != newReadStatus) {
+						this.setItemReadStatus(item, newReadStatus);
+					} else if (
+						newReadStatus == undefined &&
+						currentReadStatus
+					) {
+						this.clearItemReadStatus(item);
+					}
+				}
+				progress.setText(
+					`Updated item statuses to match tags for ${allItems.length} items in library`,
+				);
+				progress.setProgress(100);
+			});
+		} catch (e) {
+			ztoolkit.log("Error updating read statuses to match tags");
+			progress.setText("Error updating read statuses to match tags");
+			progress.setError();
+		}
+		progressWindow.startCloseTimer(3000);
+	}
+
+	// update all items' tags to match their read statuses, or clear them if they have no read status
+	async updateAllItemsTagsToMatchReadStatuses() {
+		const progressWindow = this.createProgressPopup();
+		const allItems = await Zotero.Items.getAll(
+			Zotero.Libraries.userLibraryID,
+		);
+		const progress = new progressWindow.ItemProgress(
+			"",
+			`Updating item tags to match read statuses for ${allItems.length} items in library`,
+		);
+		try {
+			progress.setProgress(0);
+			progressWindow.show();
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			await Zotero.DB.executeTransaction(() => {
+				for (const item of allItems) {
+					const itemReadStatus = this.getItemReadStatus(item);
+					this.clearItemReadStatusTags(item);
+					if (itemReadStatus) {
+						this.setItemReadStatusTag(item, itemReadStatus);
+					}
+				}
+				progress.setText(
+					`Updated item tags to match read statuses for ${allItems.length} items in library`,
+				);
+				progress.setProgress(100);
+			});
+		} catch (e) {
+			ztoolkit.log("Error updating read tags to match read statuses");
+			progress.setText("Error updating read tags to match read statuses");
+			progress.setError();
+		}
+		progressWindow.startCloseTimer(3000);
 	}
 }
