@@ -3,7 +3,7 @@ pref-enable-keyboard-shortcuts =
     .label = Enable keyboard shortcuts (customizable below). Note: the default keyboard shortcuts disables Zotero's column sorting shortcuts!
 pref-label-new-items =
     .label = Automatically label items as "New" when you add them to Zotero
-pref-set-read-status-tags = 
+pref-tag-synchronisation = 
     .label = Automatically set a Zotero tag matching an item's read status
 pref-label-items-when-opening-file = 
     .label = Automatically change the read status of items when opening an attached file
@@ -32,9 +32,9 @@ pref-statuslabeltable-button-reset = Reset to Default
 pref-keyboard-shortcut-capture-placeholder =
     .placeholder = Press shortcut to change
 
-pref-set-read-status-tags-title = Automatic Tags to Match Read Status
-pref-set-read-status-tags-button-tags-to-readstatus = Update Read Status to Match Tags
-pref-set-read-status-tags-button-readstatus-to-tags = Update Tags to Match Read Status
+pref-tag-synchronisation-title = Tag and Read Status Synchronisation
+pref-tag-synchronisation-button-tags-to-readstatus = Update Read Status to Match Tags
+pref-tag-synchronisation-button-readstatus-to-tags = Update Tags to Match Read Status
 
 pref-openitemtable-title = Custom Status Changes When Opening Item
 pref-openitemtable-header-statusfrom = Status From

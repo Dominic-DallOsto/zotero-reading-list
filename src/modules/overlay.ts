@@ -54,6 +54,7 @@ export const MODIFIER_MASK_CTRL = 2;
 export const MODIFIER_MASK_SHIFT = 4;
 export const MODIFIER_MASK_META = 8;
 export const SET_READ_STATUS_TAGS_PREF = "set-read-status-tags";
+export const TAG_SYNCHRONISATION = "tag-synchronisation";
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
@@ -366,7 +367,7 @@ export default class ZoteroReadingList {
 				LABEL_NEW_ITEMS_PREF_DISABLED,
 			);
 		}
-		initialiseDefaultPref(SET_READ_STATUS_TAGS_PREF, false);
+		initialiseDefaultPref(TAG_SYNCHRONISATION, false);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -790,7 +791,7 @@ export default class ZoteroReadingList {
 			READ_DATE_EXTRA_FIELD,
 			new Date(Date.now()).toISOString(),
 		);
-		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+		if (getPref(TAG_SYNCHRONISATION)) {
 			this.setItemReadStatusTag(item, statusName, false);
 		}
 		if (save) {
@@ -823,7 +824,7 @@ export default class ZoteroReadingList {
 	clearItemReadStatus(item: Zotero.Item) {
 		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
 		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-		if (getPref(SET_READ_STATUS_TAGS_PREF)) {
+		if (getPref(TAG_SYNCHRONISATION)) {
 			this.clearItemReadStatusTags(item);
 		}
 		void item.saveTx();
