@@ -556,7 +556,7 @@ export default class ZoteroReadingList {
 
 	createProgressPopup() {
 		const progressWindow = new Zotero.ProgressWindow();
-		progressWindow.changeHeadline("Zotero Reading List");
+		progressWindow.changeHeadline(getString("addon-title"));
 		return progressWindow;
 	}
 
@@ -568,7 +568,9 @@ export default class ZoteroReadingList {
 		);
 		const progress = new progressWindow.ItemProgress(
 			"",
-			`Updating item statuses to match tags for ${allItems.length} items in library`,
+			getString("tags-to-readstatus-message-progress", {
+				args: { numItems: allItems.length },
+			}),
 		);
 		progress.setProgress(0);
 		progressWindow.show();
@@ -592,13 +594,15 @@ export default class ZoteroReadingList {
 					}
 				}
 				progress.setText(
-					`Updated item statuses to match tags for ${allItems.length} items in library`,
+					getString("tags-to-readstatus-message-done", {
+						args: { numItems: allItems.length },
+					}),
 				);
 				progress.setProgress(100);
 			});
 		} catch (e) {
 			ztoolkit.log("Error updating read statuses to match tags");
-			progress.setText("Error updating read statuses to match tags");
+			progress.setText(getString("tags-to-readstatus-message-error"));
 			progress.setError();
 		}
 		progressWindow.startCloseTimer(3000);
@@ -612,7 +616,9 @@ export default class ZoteroReadingList {
 		);
 		const progress = new progressWindow.ItemProgress(
 			"",
-			`Updating item tags to match read statuses for ${allItems.length} items in library`,
+			getString("readstatus-to-tags-message-progress", {
+				args: { numItems: allItems.length },
+			}),
 		);
 		try {
 			progress.setProgress(0);
@@ -627,13 +633,15 @@ export default class ZoteroReadingList {
 					}
 				}
 				progress.setText(
-					`Updated item tags to match read statuses for ${allItems.length} items in library`,
+					getString("readstatus-to-tags-message-done", {
+						args: { numItems: allItems.length },
+					}),
 				);
 				progress.setProgress(100);
 			});
 		} catch (e) {
 			ztoolkit.log("Error updating read tags to match read statuses");
-			progress.setText("Error updating read tags to match read statuses");
+			progress.setText(getString("readstatus-to-tags-message-error"));
 			progress.setError();
 		}
 		progressWindow.startCloseTimer(3000);
