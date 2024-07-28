@@ -19,7 +19,7 @@ const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
 const OPEN_ITEM_CHECKBOX =
 	"zotero-prefpane-zotero-reading-list-label-items-when-opening-file";
 const TAG_SYNCHRONISATION_CHECKBOX =
-	"zotero-prefpane-zotero-reading-list-set-read-status-tags";
+	"zotero-prefpane-zotero-reading-list-tag-synchronisation";
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
 	setTableOpenItem(window);
