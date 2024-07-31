@@ -16,3 +16,7 @@ table th {
 	text-align: left;
 	margin-left: 6px;
 }
+
+input:invalid {
+	color: rgb(255, 20, 20);
+}

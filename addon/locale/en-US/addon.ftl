@@ -9,4 +9,4 @@ status-not_reading = Not Reading
 prefs-title = Reading List
 
 duplicate-status-names-title = Duplicate Custom Reading Statuses
-duplicate-status-names-description = One or more custom reading status names are duplicated. This isn't supported. Please ensure all your custom reading status names are unique.
+duplicate-status-names-description = Two or more custom reading status names are the same. This isn't supported. Please ensure all of your custom reading status names are unique.

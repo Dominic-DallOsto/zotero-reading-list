@@ -27,7 +27,7 @@ function setTableStatusNames(window: Window) {
 	const tableBodyStatusNames = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
 	);
-	for (const row of createTableRowsStatusNames()) {
+	for (const row of createTableRowsStatusNames(window)) {
 		tableBodyStatusNames?.append(row);
 	}
 }
@@ -58,7 +58,7 @@ function setTableVisibilityOpenItem(window: Window) {
 function addTableRowStatusNames(window: Window) {
 	window.document
 		.getElementById(STATUS_NAMES_TABLE_BODY)
-		?.append(createTableRowStatusNames("", ""));
+		?.append(createTableRowStatusNames(window, "", ""));
 }
 
 function addTableRowOpenItem(window: Window) {
@@ -102,7 +102,7 @@ function clearTableOpenItem(window: Window) {
 		.map((row) => row.remove());
 }
 
-function saveTableStatusNames(window: Window) {
+function getTableStatusRows(window: Window) {
 	const tableRows = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
 	)?.children;
@@ -112,6 +112,57 @@ function saveTableStatusNames(window: Window) {
 		icons.push((row.children[0].firstChild as HTMLInputElement).value);
 		names.push((row.children[1].firstChild as HTMLInputElement).value);
 	}
+	return { names, icons };
+}
+
+function setDuplicateTableRowsAsInvalid(
+	window: Window,
+	duplicates: Set<string>,
+) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[1].firstChild as HTMLInputElement;
+		if (duplicates.has(nameInput.value)) {
+			nameInput.setCustomValidity("duplicate");
+		} else {
+			nameInput.setCustomValidity("");
+		}
+	}
+}
+
+function setAllTableRowsAsValid(window: Window) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[1].firstChild as HTMLInputElement;
+		nameInput.setCustomValidity("");
+	}
+}
+
+function validateTableRows(window: Window) {
+	const { names } = getTableStatusRows(window);
+	const unique = new Set(names);
+	if (unique.size != names.length) {
+		const duplicates = new Set(
+			names.filter((item) => {
+				if (unique.has(item)) {
+					unique.delete(item);
+				} else {
+					return item;
+				}
+			}),
+		);
+		setDuplicateTableRowsAsInvalid(window, duplicates);
+	} else {
+		setAllTableRowsAsValid(window);
+	}
+}
+
+function saveTableStatusNames(window: Window) {
+	const { names, icons } = getTableStatusRows(window);
 	if (new Set(names).size != names.length) {
 		Services.prompt.alert(
 			window as mozIDOMWindowProxy,
@@ -170,12 +221,12 @@ function moveElementLower(element: HTMLElement) {
 	}
 }
 
-function createTableRowsStatusNames() {
+function createTableRowsStatusNames(window: Window) {
 	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
 	);
 	return statusNames.map((statusName, index) =>
-		createTableRowStatusNames(statusIcons[index], statusName),
+		createTableRowStatusNames(window, statusIcons[index], statusName),
 	);
 }
 
@@ -188,7 +239,7 @@ function createTableRowsOpenItem(window: Window) {
 	);
 }
 
-function createTableRowStatusNames(icon: string, name: string) {
+function createTableRowStatusNames(window: Window, icon: string, name: string) {
 	const row = createElement("html:tr");
 
 	const iconCell = createElement("html:td");
@@ -201,6 +252,7 @@ function createTableRowStatusNames(icon: string, name: string) {
 	const nameInput = createElement("html:input") as HTMLInputElement;
 	nameInput.type = "text";
 	nameInput.value = name;
+	nameInput.oninput = () => validateTableRows(window);
 	nameCell.append(nameInput);
 
 	const settings = createElement("html:td");
