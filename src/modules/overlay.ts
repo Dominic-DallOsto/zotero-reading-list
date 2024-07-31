@@ -32,7 +32,13 @@ export const DEFAULT_STATUS_ICONS = ["⭐", "📙", "📖", "📗", "📕"];
 export const DEFAULT_STATUS_CHANGE_FROM = ["New", "To Read"];
 export const DEFAULT_STATUS_CHANGE_TO = ["In Progress", "In Progress"];
 
-export const SHOW_ICONS_PREF = "show-icons";
+export const SHOW_ICONS_PREF = "show-icons"; // deprecated
+export const READ_STATUS_FORMAT_PREF = "read-status-format";
+export const READ_STATUS_FORMAT_HEADER_SHOW_ICON =
+	"readstatuscolumn-format-header-showicon";
+const READ_STATUS_FORMAT_BOTH = 0;
+const READ_STATUS_FORMAT_TEXT = 1;
+const READ_STATUS_FORMAT_ICON = 2;
 export const LABEL_NEW_ITEMS_PREF = "label-new-items";
 export const LABEL_ITEMS_WHEN_OPENING_FILE_PREF =
 	"label-items-when-opening-file";
@@ -126,7 +132,7 @@ export default class ZoteroReadingList {
 	}
 
 	public unload() {
-		this.removeReadStatusColumn();
+		void this.removeReadStatusColumn();
 		this.removePreferenceMenu();
 		this.removeRightClickMenu();
 		this.removeKeyboardShortcutListener();
@@ -137,7 +143,27 @@ export default class ZoteroReadingList {
 	}
 
 	initialiseDefaultPreferences() {
-		initialiseDefaultPref(SHOW_ICONS_PREF, true);
+		// for migrating from old format pref (show icon or not) to new format pref (show both, text, or icon)
+		// show icon -> show both
+		// don't show icon -> show text
+		// otherwise, default is show both
+		const oldReadStatusColumnFormatPref_showIcons =
+			getPref(SHOW_ICONS_PREF);
+		if (
+			typeof oldReadStatusColumnFormatPref_showIcons == "boolean" &&
+			!oldReadStatusColumnFormatPref_showIcons
+		) {
+			initialiseDefaultPref(
+				READ_STATUS_FORMAT_PREF,
+				READ_STATUS_FORMAT_TEXT,
+			);
+		} else {
+			initialiseDefaultPref(
+				READ_STATUS_FORMAT_PREF,
+				READ_STATUS_FORMAT_BOTH,
+			);
+		}
+		initialiseDefaultPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON, false);
 		initialiseDefaultPref(ENABLE_KEYBOARD_SHORTCUTS_PREF, true);
 		initialiseDefaultPref(LABEL_NEW_ITEMS_PREF, false);
 		initialiseDefaultPref(LABEL_ITEMS_WHEN_OPENING_FILE_PREF, false);
@@ -189,17 +215,34 @@ export default class ZoteroReadingList {
 				},
 				true,
 			),
+			// refresh read status column on format change
+			Zotero.Prefs.registerObserver(
+				getPrefGlobalName(READ_STATUS_FORMAT_PREF),
+				async (value: boolean) => {
+					await this.removeReadStatusColumn();
+					await this.addReadStatusColumn();
+				},
+				true,
+			),
+			Zotero.Prefs.registerObserver(
+				getPrefGlobalName(READ_STATUS_FORMAT_HEADER_SHOW_ICON),
+				async (value: boolean) => {
+					await this.removeReadStatusColumn();
+					await this.addReadStatusColumn();
+				},
+				true,
+			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(STATUS_NAME_AND_ICON_LIST_PREF),
-				(value: string) => {
+				async (value: string) => {
 					[this.statusNames, this.statusIcons] =
 						prefStringToList(value);
 					this.removeRightClickMenu();
 					this.addRightClickMenuPopup();
 					this.removeKeyboardShortcutListener();
 					this.addKeyboardShortcutListener();
-					this.removeReadStatusColumn();
-					void this.addReadStatusColumn();
+					await this.removeReadStatusColumn();
+					await this.addReadStatusColumn();
 				},
 				true,
 			),
@@ -222,6 +265,10 @@ export default class ZoteroReadingList {
 			await Zotero.ItemTreeManager.registerColumns({
 				dataKey: READ_STATUS_COLUMN_ID,
 				label: READ_STATUS_COLUMN_NAME,
+				// If we just want to show the icon, overwrite the label with htmlLabel (#40)
+				htmlLabel: getPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON)
+					? `<span class="icon icon-css icon-16" style="background: url(chrome://${config.addonRef}/content/icons/favicon.png) content-box no-repeat center/contain;" />`
+					: undefined,
 				pluginID: config.addonID,
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
 					return item.isRegularItem() ? getItemReadStatus(item) : "";
@@ -249,6 +296,7 @@ export default class ZoteroReadingList {
 
 					return cell;
 				},
+				zoteroPersist: ["width", "hidden", "sortDirection"],
 			});
 	}
 
@@ -258,18 +306,24 @@ export default class ZoteroReadingList {
 	 * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
 	 */
 	formatStatusName(statusName: string): string {
-		if (getPref(SHOW_ICONS_PREF)) {
+		const readStatusFormat = getPref(READ_STATUS_FORMAT_PREF);
+		if (readStatusFormat == READ_STATUS_FORMAT_BOTH) {
 			const statusIndex = this.statusNames.indexOf(statusName);
 			if (statusIndex > -1) {
 				return `${this.statusIcons[statusIndex]} ${statusName}`;
+			}
+		} else if (readStatusFormat == READ_STATUS_FORMAT_ICON) {
+			const statusIndex = this.statusNames.indexOf(statusName);
+			if (statusIndex > -1) {
+				return `${this.statusIcons[statusIndex]}`;
 			}
 		}
 		return statusName;
 	}
 
-	removeReadStatusColumn() {
+	async removeReadStatusColumn() {
 		if (this.itemTreeReadStatusColumnId) {
-			void Zotero.ItemTreeManager.unregisterColumns(
+			await Zotero.ItemTreeManager.unregisterColumns(
 				this.itemTreeReadStatusColumnId,
 			);
 		}

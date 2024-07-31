@@ -15,11 +15,6 @@
 			<html:h2 data-l10n-id="pref-title"></html:h2>
 		</label>
 		<checkbox
-			id="zotero-prefpane-__addonRef__-show-icons"
-			preference="extensions.zotero.__addonRef__.show-icons"
-			data-l10n-id="pref-show-icons"
-		/>
-		<checkbox
 			id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
 			preference="extensions.zotero.__addonRef__.enable-keyboard-shortcuts"
 			data-l10n-id="pref-enable-keyboard-shortcuts"
@@ -28,6 +23,35 @@
 			id="zotero-prefpane-__addonRef__-label-new-items"
 			preference="extensions.zotero.__addonRef__.label-new-items"
 			data-l10n-id="pref-label-new-items"
+		/>
+	</groupbox>
+	<!-- Read Status column format -->
+	<groupbox>
+		<label>
+			<html:h2
+				data-l10n-id="pref-readstatuscolumn-format-title"
+			></html:h2>
+		</label>
+		<radiogroup
+			preference="extensions.zotero.__addonRef__.read-status-format"
+		>
+			<radio
+				value="0"
+				data-l10n-id="pref-readstatuscolumn-format-showboth"
+			/>
+			<radio
+				value="1"
+				data-l10n-id="pref-readstatuscolumn-format-showtext"
+			/>
+			<radio
+				value="2"
+				data-l10n-id="pref-readstatuscolumn-format-showicon"
+			/>
+		</radiogroup>
+		<checkbox
+			id="zotero-prefpane-__addonRef__-readstatuscolumn-header-showicon"
+			preference="extensions.zotero.__addonRef__.readstatuscolumn-format-header-showicon"
+			data-l10n-id="pref-readstatuscolumn-header-showicon"
 		/>
 	</groupbox>
 	<!-- Status names -->
