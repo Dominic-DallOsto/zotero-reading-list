@@ -6,10 +6,12 @@ import {
 	LABEL_ITEMS_WHEN_OPENING_FILE_PREF,
 	DEFAULT_STATUS_CHANGE_FROM,
 	DEFAULT_STATUS_CHANGE_TO,
+	FORBIDDEN_PREF_STRING_CHARACTERS,
 	prefStringToList,
 	listToPrefString,
 } from "./modules/overlay";
 import { getPref, setPref } from "./utils/prefs";
+import { getString } from "./utils/locale";
 
 const STATUS_NAMES_TABLE_BODY = "statusnames-table-body";
 const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
@@ -26,7 +28,7 @@ function setTableStatusNames(window: Window) {
 	const tableBodyStatusNames = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
 	);
-	for (const row of createTableRowsStatusNames()) {
+	for (const row of createTableRowsStatusNames(window)) {
 		tableBodyStatusNames?.append(row);
 	}
 }
@@ -57,7 +59,7 @@ function setTableVisibilityOpenItem(window: Window) {
 function addTableRowStatusNames(window: Window) {
 	window.document
 		.getElementById(STATUS_NAMES_TABLE_BODY)
-		?.append(createTableRowStatusNames("", ""));
+		?.append(createTableRowStatusNames(window, "", ""));
 }
 
 function addTableRowOpenItem(window: Window) {
@@ -101,7 +103,7 @@ function clearTableOpenItem(window: Window) {
 		.map((row) => row.remove());
 }
 
-function saveTableStatusNames(window: Window) {
+function getTableStatusRows(window: Window) {
 	const tableRows = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
 	)?.children;
@@ -111,6 +113,108 @@ function saveTableStatusNames(window: Window) {
 		icons.push((row.children[0].firstChild as HTMLInputElement).value);
 		names.push((row.children[1].firstChild as HTMLInputElement).value);
 	}
+	return { names, icons };
+}
+
+function inputContainsForbiddenCharacters(input: HTMLInputElement) {
+	// the pref string is delimited with ; and | characters, so these can't be used in custom status names or icons
+	const valueCharacters = new Set(input.value);
+	return (
+		[...FORBIDDEN_PREF_STRING_CHARACTERS].filter((char) =>
+			valueCharacters.has(char),
+		).length > 0
+	);
+}
+
+function setDuplicateTableRowsAsInvalid(
+	window: Window,
+	duplicates: Set<string>,
+) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[1].firstChild as HTMLInputElement;
+		if (duplicates.has(nameInput.value)) {
+			nameInput.setCustomValidity("duplicate");
+		}
+	}
+}
+
+function checkAllTableRowsAreValid(window: Window) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const iconInput = row.children[0].firstChild as HTMLInputElement;
+		const nameInput = row.children[1].firstChild as HTMLInputElement;
+		iconInput.setCustomValidity(
+			inputContainsForbiddenCharacters(iconInput)
+				? "invalid-characters"
+				: "",
+		);
+		nameInput.setCustomValidity(
+			inputContainsForbiddenCharacters(nameInput)
+				? "invalid-characters"
+				: "",
+		);
+	}
+}
+
+function validateTableRows(window: Window) {
+	checkAllTableRowsAreValid(window);
+	// now check for duplicate names
+	const { names } = getTableStatusRows(window);
+	const unique = new Set(names);
+	if (unique.size != names.length) {
+		const duplicates = new Set(
+			names.filter((item) => {
+				if (unique.has(item)) {
+					unique.delete(item);
+				} else {
+					return item;
+				}
+			}),
+		);
+		setDuplicateTableRowsAsInvalid(window, duplicates);
+	}
+}
+
+function tableContainsInvalidInput(window: Window) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const iconInput = row.children[0].firstChild as HTMLInputElement;
+		const nameInput = row.children[1].firstChild as HTMLInputElement;
+		if (inputContainsForbiddenCharacters(iconInput)) {
+			return true;
+		}
+		if (inputContainsForbiddenCharacters(nameInput)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function saveTableStatusNames(window: Window) {
+	const { names, icons } = getTableStatusRows(window);
+	if (new Set(names).size != names.length) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("duplicate-status-names-title"),
+			getString("duplicate-status-names-description"),
+		);
+		return;
+	} else if (tableContainsInvalidInput(window)) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("invalid-status-names-title"),
+			getString("invalid-status-names-description"),
+		);
+		return;
+	}
+
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
 	// if we change the statuses, need to reset the status lists here
 	clearTableOpenItem(window);
@@ -160,12 +264,12 @@ function moveElementLower(element: HTMLElement) {
 	}
 }
 
-function createTableRowsStatusNames() {
+function createTableRowsStatusNames(window: Window) {
 	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
 	);
 	return statusNames.map((statusName, index) =>
-		createTableRowStatusNames(statusIcons[index], statusName),
+		createTableRowStatusNames(window, statusIcons[index], statusName),
 	);
 }
 
@@ -178,19 +282,21 @@ function createTableRowsOpenItem(window: Window) {
 	);
 }
 
-function createTableRowStatusNames(icon: string, name: string) {
+function createTableRowStatusNames(window: Window, icon: string, name: string) {
 	const row = createElement("html:tr");
 
 	const iconCell = createElement("html:td");
 	const iconInput = createElement("html:input") as HTMLInputElement;
 	iconInput.type = "text";
 	iconInput.value = icon;
+	iconInput.oninput = () => validateTableRows(window);
 	iconCell.append(iconInput);
 
 	const nameCell = createElement("html:td");
 	const nameInput = createElement("html:input") as HTMLInputElement;
 	nameInput.type = "text";
 	nameInput.value = name;
+	nameInput.oninput = () => validateTableRows(window);
 	nameCell.append(nameInput);
 
 	const settings = createElement("html:td");
