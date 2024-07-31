@@ -6,6 +6,7 @@ import {
 	LABEL_ITEMS_WHEN_OPENING_FILE_PREF,
 	DEFAULT_STATUS_CHANGE_FROM,
 	DEFAULT_STATUS_CHANGE_TO,
+	FORBIDDEN_PREF_STRING_CHARACTERS,
 	prefStringToList,
 	listToPrefString,
 } from "./modules/overlay";
@@ -115,6 +116,16 @@ function getTableStatusRows(window: Window) {
 	return { names, icons };
 }
 
+function inputContainsForbiddenCharacters(input: HTMLInputElement) {
+	// the pref string is delimited with ; and | characters, so these can't be used in custom status names or icons
+	const valueCharacters = new Set(input.value);
+	return (
+		[...FORBIDDEN_PREF_STRING_CHARACTERS].filter((char) =>
+			valueCharacters.has(char),
+		).length > 0
+	);
+}
+
 function setDuplicateTableRowsAsInvalid(
 	window: Window,
 	duplicates: Set<string>,
@@ -126,23 +137,33 @@ function setDuplicateTableRowsAsInvalid(
 		const nameInput = row.children[1].firstChild as HTMLInputElement;
 		if (duplicates.has(nameInput.value)) {
 			nameInput.setCustomValidity("duplicate");
-		} else {
-			nameInput.setCustomValidity("");
 		}
 	}
 }
 
-function setAllTableRowsAsValid(window: Window) {
+function checkAllTableRowsAreValid(window: Window) {
 	const tableRows = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
 	)?.children;
 	for (const row of tableRows ?? []) {
+		const iconInput = row.children[0].firstChild as HTMLInputElement;
 		const nameInput = row.children[1].firstChild as HTMLInputElement;
-		nameInput.setCustomValidity("");
+		iconInput.setCustomValidity(
+			inputContainsForbiddenCharacters(iconInput)
+				? "invalid-characters"
+				: "",
+		);
+		nameInput.setCustomValidity(
+			inputContainsForbiddenCharacters(nameInput)
+				? "invalid-characters"
+				: "",
+		);
 	}
 }
 
 function validateTableRows(window: Window) {
+	checkAllTableRowsAreValid(window);
+	// now check for duplicate names
 	const { names } = getTableStatusRows(window);
 	const unique = new Set(names);
 	if (unique.size != names.length) {
@@ -156,9 +177,24 @@ function validateTableRows(window: Window) {
 			}),
 		);
 		setDuplicateTableRowsAsInvalid(window, duplicates);
-	} else {
-		setAllTableRowsAsValid(window);
 	}
+}
+
+function tableContainsInvalidInput(window: Window) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const iconInput = row.children[0].firstChild as HTMLInputElement;
+		const nameInput = row.children[1].firstChild as HTMLInputElement;
+		if (inputContainsForbiddenCharacters(iconInput)) {
+			return true;
+		}
+		if (inputContainsForbiddenCharacters(nameInput)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function saveTableStatusNames(window: Window) {
@@ -168,6 +204,13 @@ function saveTableStatusNames(window: Window) {
 			window as mozIDOMWindowProxy,
 			getString("duplicate-status-names-title"),
 			getString("duplicate-status-names-description"),
+		);
+		return;
+	} else if (tableContainsInvalidInput(window)) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("invalid-status-names-title"),
+			getString("invalid-status-names-description"),
 		);
 		return;
 	}
@@ -246,6 +289,7 @@ function createTableRowStatusNames(window: Window, icon: string, name: string) {
 	const iconInput = createElement("html:input") as HTMLInputElement;
 	iconInput.type = "text";
 	iconInput.value = icon;
+	iconInput.oninput = () => validateTableRows(window);
 	iconCell.append(iconInput);
 
 	const nameCell = createElement("html:td");
