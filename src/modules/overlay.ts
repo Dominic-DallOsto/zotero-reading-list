@@ -16,7 +16,6 @@ import {
 } from "../utils/extraField";
 
 const READ_STATUS_COLUMN_ID = "readstatus";
-const READ_STATUS_COLUMN_NAME = "Read Status";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 
@@ -264,7 +263,7 @@ export default class ZoteroReadingList {
 		this.itemTreeReadStatusColumnId =
 			await Zotero.ItemTreeManager.registerColumns({
 				dataKey: READ_STATUS_COLUMN_ID,
-				label: READ_STATUS_COLUMN_NAME,
+				label: getString("read-status"),
 				// If we just want to show the icon, overwrite the label with htmlLabel (#40)
 				htmlLabel: getPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON)
 					? `<span class="icon icon-css icon-16" style="background: url(chrome://${config.addonRef}/content/icons/favicon.png) content-box no-repeat center/contain;" />`
