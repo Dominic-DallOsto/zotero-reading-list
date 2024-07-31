@@ -132,7 +132,7 @@
 			"release": false,
 			"assets": [
 				"build/*.xpi",
-				"update.json"
+				"build/update*.json"
 			]
 		},
 		"hooks": {
