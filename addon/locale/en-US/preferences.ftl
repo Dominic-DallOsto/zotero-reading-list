@@ -1,6 +1,4 @@
 pref-title = Zotero Reading List Settings
-pref-show-icons =
-    .label = Show icons along with an item's read status
 pref-enable-keyboard-shortcuts =
     .label = Enable keyboard shortcuts (Alt+0,1,2,3,4,5, ...). This disables Zotero's column sorting shortcuts!
 pref-label-new-items =
@@ -8,6 +6,17 @@ pref-label-new-items =
 pref-label-items-when-opening-file = 
     .label = Automatically change the read status of items when opening an attached file
 pref-help = { $name } Build { $version } { $time }
+
+pref-readstatuscolumn-format-title = Read Status Column Format
+pref-readstatuscolumn-format-showboth =
+    .label = Show icon and text (eg. ⭐ New)
+pref-readstatuscolumn-format-showtext = 
+    .label = Show only text (eg. New)
+pref-readstatuscolumn-format-showicon = 
+    .label = Show only icon (eg. ⭐)
+pref-readstatuscolumn-header-showicon = 
+    .label = Show extension icon instead of "Read Status" as column header
+
 pref-statuslabeltable-title = Custom Reading Statuses
 pref-statuslabeltable-header-number = Number
 pref-statuslabeltable-header-statusicon = Status Icon
