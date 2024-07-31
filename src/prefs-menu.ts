@@ -10,6 +10,7 @@ import {
 	listToPrefString,
 } from "./modules/overlay";
 import { getPref, setPref } from "./utils/prefs";
+import { getString } from "./utils/locale";
 
 const STATUS_NAMES_TABLE_BODY = "statusnames-table-body";
 const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
@@ -111,6 +112,15 @@ function saveTableStatusNames(window: Window) {
 		icons.push((row.children[0].firstChild as HTMLInputElement).value);
 		names.push((row.children[1].firstChild as HTMLInputElement).value);
 	}
+	if (new Set(names).size != names.length) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("duplicate-status-names-title"),
+			getString("duplicate-status-names-description"),
+		);
+		return;
+	}
+
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
 	// if we change the statuses, need to reset the status lists here
 	clearTableOpenItem(window);
