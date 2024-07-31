@@ -3,7 +3,6 @@ import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { patch as $patch$, unpatch as $unpatch$ } from "../utils/patcher";
 import {
-	setPref,
 	getPref,
 	initialiseDefaultPref,
 	getPrefGlobalName,
@@ -35,9 +34,6 @@ export const SHOW_ICONS_PREF = "show-icons"; // deprecated
 export const READ_STATUS_FORMAT_PREF = "read-status-format";
 export const READ_STATUS_FORMAT_HEADER_SHOW_ICON =
 	"readstatuscolumn-format-header-showicon";
-const READ_STATUS_FORMAT_BOTH = 0;
-const READ_STATUS_FORMAT_TEXT = 1;
-const READ_STATUS_FORMAT_ICON = 2;
 export const LABEL_NEW_ITEMS_PREF = "label-new-items";
 export const LABEL_ITEMS_WHEN_OPENING_FILE_PREF =
 	"label-items-when-opening-file";
@@ -45,6 +41,12 @@ export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
 	"status-change-on-open-item-list";
+
+enum ReadStatusFormat {
+	ShowBoth = 0,
+	ShowText = 1,
+	ShowIcon = 2,
+}
 
 function getItemReadStatus(item: Zotero.Item) {
 	const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
@@ -154,12 +156,12 @@ export default class ZoteroReadingList {
 		) {
 			initialiseDefaultPref(
 				READ_STATUS_FORMAT_PREF,
-				READ_STATUS_FORMAT_TEXT,
+				ReadStatusFormat.ShowText,
 			);
 		} else {
 			initialiseDefaultPref(
 				READ_STATUS_FORMAT_PREF,
-				READ_STATUS_FORMAT_BOTH,
+				ReadStatusFormat.ShowBoth,
 			);
 		}
 		initialiseDefaultPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON, false);
@@ -305,19 +307,23 @@ export default class ZoteroReadingList {
 	 * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
 	 */
 	formatStatusName(statusName: string): string {
-		const readStatusFormat = getPref(READ_STATUS_FORMAT_PREF);
-		if (readStatusFormat == READ_STATUS_FORMAT_BOTH) {
-			const statusIndex = this.statusNames.indexOf(statusName);
-			if (statusIndex > -1) {
-				return `${this.statusIcons[statusIndex]} ${statusName}`;
+		switch (getPref(READ_STATUS_FORMAT_PREF) as ReadStatusFormat) {
+			case ReadStatusFormat.ShowBoth: {
+				const statusIndex = this.statusNames.indexOf(statusName);
+				return statusIndex > -1
+					? `${this.statusIcons[statusIndex]} ${statusName}`
+					: statusName;
 			}
-		} else if (readStatusFormat == READ_STATUS_FORMAT_ICON) {
-			const statusIndex = this.statusNames.indexOf(statusName);
-			if (statusIndex > -1) {
-				return `${this.statusIcons[statusIndex]}`;
+			case ReadStatusFormat.ShowText: {
+				return statusName;
+			}
+			case ReadStatusFormat.ShowIcon: {
+				const statusIndex = this.statusNames.indexOf(statusName);
+				return statusIndex > -1
+					? `${this.statusIcons[statusIndex]}`
+					: statusName;
 			}
 		}
-		return statusName;
 	}
 
 	async removeReadStatusColumn() {
