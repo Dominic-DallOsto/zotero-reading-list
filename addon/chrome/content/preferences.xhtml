@@ -19,11 +19,6 @@
 			preference="extensions.zotero.__addonRef__.enable-keyboard-shortcuts"
 			data-l10n-id="pref-enable-keyboard-shortcuts"
 		/>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-label-new-items"
-			preference="extensions.zotero.__addonRef__.label-new-items"
-			data-l10n-id="pref-label-new-items"
-		/>
 	</groupbox>
 	<!-- Read Status column format -->
 	<groupbox>
@@ -152,6 +147,20 @@
 				data-l10n-id="pref-openitemtable-button-reset"
 			/>
 		</html:table>
+	</groupbox>
+
+	<!-- Automatically label new items -->
+	<groupbox>
+		<label>
+			<html:h2 data-l10n-id="pref-autolabelnewitems-title"></html:h2>
+		</label>
+		<menulist
+			id="automatically-label-new-items-menulist"
+			native="true"
+			preference="extensions.zotero.__addonRef__.label-new-items"
+		>
+			<menupopup> </menupopup>
+		</menulist>
 	</groupbox>
 </vbox>
 <vbox class="main-section">

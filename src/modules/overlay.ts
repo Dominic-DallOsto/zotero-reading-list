@@ -4,6 +4,8 @@ import { getString } from "../utils/locale";
 import { patch as $patch$, unpatch as $unpatch$ } from "../utils/patcher";
 import {
 	getPref,
+	setPref,
+	clearPref,
 	initialiseDefaultPref,
 	getPrefGlobalName,
 } from "../utils/prefs";
@@ -35,6 +37,7 @@ export const READ_STATUS_FORMAT_PREF = "read-status-format";
 export const READ_STATUS_FORMAT_HEADER_SHOW_ICON =
 	"readstatuscolumn-format-header-showicon";
 export const LABEL_NEW_ITEMS_PREF = "label-new-items";
+export const LABEL_NEW_ITEMS_PREF_DISABLED = "|none|";
 export const LABEL_ITEMS_WHEN_OPENING_FILE_PREF =
 	"label-items-when-opening-file";
 export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
@@ -91,10 +94,8 @@ function getSelectedItems() {
 
 export const FORBIDDEN_PREF_STRING_CHARACTERS = new Set(";|");
 
-export function prefStringToList(
-	prefString: string | number | boolean | undefined,
-) {
-	const [statusString, iconString] = (prefString as string).split("|");
+export function prefStringToList(prefString: string) {
+	const [statusString, iconString] = prefString.split("|");
 	return [statusString.split(";"), iconString.split(";")];
 }
 
@@ -113,7 +114,7 @@ export default class ZoteroReadingList {
 	constructor() {
 		this.initialiseDefaultPreferences();
 		[this.statusNames, this.statusIcons] = prefStringToList(
-			getPref(STATUS_NAME_AND_ICON_LIST_PREF),
+			getPref(STATUS_NAME_AND_ICON_LIST_PREF)! as string,
 		);
 
 		void this.addReadStatusColumn();
@@ -123,7 +124,7 @@ export default class ZoteroReadingList {
 		if (getPref(ENABLE_KEYBOARD_SHORTCUTS_PREF)) {
 			this.addKeyboardShortcutListener();
 		}
-		if (getPref(LABEL_NEW_ITEMS_PREF)) {
+		if (getPref(LABEL_NEW_ITEMS_PREF) != LABEL_NEW_ITEMS_PREF_DISABLED) {
 			this.addNewItemLabeller();
 		}
 		if (getPref(LABEL_ITEMS_WHEN_OPENING_FILE_PREF)) {
@@ -168,7 +169,6 @@ export default class ZoteroReadingList {
 		}
 		initialiseDefaultPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON, false);
 		initialiseDefaultPref(ENABLE_KEYBOARD_SHORTCUTS_PREF, true);
-		initialiseDefaultPref(LABEL_NEW_ITEMS_PREF, false);
 		initialiseDefaultPref(LABEL_ITEMS_WHEN_OPENING_FILE_PREF, false);
 		initialiseDefaultPref(
 			STATUS_NAME_AND_ICON_LIST_PREF,
@@ -181,6 +181,29 @@ export default class ZoteroReadingList {
 				DEFAULT_STATUS_CHANGE_TO,
 			),
 		);
+		// for migrating from old label new items pref (true or false) to new format pref (disabled or choose read status to use)
+		// true -> automatically label as first read status
+		// false -> disabled
+		const oldLabelNewItemsPref = getPref(LABEL_NEW_ITEMS_PREF);
+		if (typeof oldLabelNewItemsPref == "boolean") {
+			// need to clear then set Pref when changing type from bool to string
+			clearPref(LABEL_NEW_ITEMS_PREF);
+			if (oldLabelNewItemsPref) {
+				setPref(
+					LABEL_NEW_ITEMS_PREF,
+					prefStringToList(
+						getPref(STATUS_NAME_AND_ICON_LIST_PREF)! as string,
+					)[0][0],
+				);
+			} else {
+				setPref(LABEL_NEW_ITEMS_PREF, LABEL_NEW_ITEMS_PREF_DISABLED);
+			}
+		} else {
+			initialiseDefaultPref(
+				LABEL_NEW_ITEMS_PREF,
+				LABEL_NEW_ITEMS_PREF_DISABLED,
+			);
+		}
 	}
 
 	addPreferenceUpdateObservers() {
@@ -198,11 +221,11 @@ export default class ZoteroReadingList {
 			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(LABEL_NEW_ITEMS_PREF),
-				(value: boolean) => {
-					if (value) {
-						this.addNewItemLabeller();
-					} else {
+				(value: string) => {
+					if (value == LABEL_NEW_ITEMS_PREF_DISABLED) {
 						this.removeNewItemLabeller();
+					} else if (typeof this.itemAddedListenerID == "undefined") {
+						this.addNewItemLabeller();
 					}
 				},
 				true,
@@ -258,6 +281,7 @@ export default class ZoteroReadingList {
 				.preferenceUpdateObservers) {
 				Zotero.Prefs.unregisterObserver(preferenceUpdateObserverSymbol);
 			}
+			this.preferenceUpdateObservers = undefined;
 		}
 	}
 
@@ -333,6 +357,7 @@ export default class ZoteroReadingList {
 			await Zotero.ItemTreeManager.unregisterColumns(
 				this.itemTreeReadStatusColumnId,
 			);
+			this.itemTreeReadStatusColumnId = undefined;
 		}
 	}
 
@@ -395,7 +420,10 @@ export default class ZoteroReadingList {
 					item.isRegularItem(),
 				);
 
-				setItemsReadStatus(items, "New");
+				setItemsReadStatus(
+					items,
+					getPref(LABEL_NEW_ITEMS_PREF)! as string,
+				);
 			}
 		};
 
@@ -415,6 +443,7 @@ export default class ZoteroReadingList {
 	removeNewItemLabeller() {
 		if (this.itemAddedListenerID) {
 			Zotero.Notifier.unregisterObserver(this.itemAddedListenerID);
+			this.itemAddedListenerID = undefined;
 		}
 	}
 
@@ -461,6 +490,7 @@ export default class ZoteroReadingList {
 	removeFileOpenedListener() {
 		if (this.fileOpenedListenerID) {
 			Zotero.Notifier.unregisterObserver(this.fileOpenedListenerID);
+			this.fileOpenedListenerID = undefined;
 		}
 	}
 
