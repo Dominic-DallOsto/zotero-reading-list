@@ -33,3 +33,5 @@ pref-openitemtable-header-delete = Delete
 pref-openitemtable-button-add = Add New Status
 pref-openitemtable-button-save = Save
 pref-openitemtable-button-reset = Reset to Default
+
+pref-autolabelnewitems-title = Automatically label new items when you add them to Zotero

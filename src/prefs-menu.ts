@@ -7,6 +7,8 @@ import {
 	DEFAULT_STATUS_CHANGE_FROM,
 	DEFAULT_STATUS_CHANGE_TO,
 	FORBIDDEN_PREF_STRING_CHARACTERS,
+	LABEL_NEW_ITEMS_PREF,
+	LABEL_NEW_ITEMS_PREF_DISABLED,
 	prefStringToList,
 	listToPrefString,
 } from "./modules/overlay";
@@ -18,10 +20,12 @@ const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
 const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
 const OPEN_ITEM_CHECKBOX =
 	"zotero-prefpane-zotero-reading-list-label-items-when-opening-file";
+const LABEL_NEW_ITEMS_MENU_LIST = "automatically-label-new-items-menulist";
 
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
 	setTableOpenItem(window);
+	fillAutomaticallyLabelNewItemsMenuList(window);
 }
 
 function setTableStatusNames(window: Window) {
@@ -360,6 +364,30 @@ function createTableRowOpenItem(
 	}
 
 	return row;
+}
+
+function fillAutomaticallyLabelNewItemsMenuList(window: Window) {
+	const menuList = window.document.getElementById(
+		LABEL_NEW_ITEMS_MENU_LIST,
+	)! as XUL.MenuList;
+
+	menuList.appendItem(
+		getString("autolabelnewitems-disabled"),
+		LABEL_NEW_ITEMS_PREF_DISABLED,
+	); // | isn't valid in a status name
+
+	const [statusNames, statusIcons] = prefStringToList(
+		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
+	);
+
+	statusNames.forEach((statusName, index) => {
+		const statusString = `${statusIcons[index]} ${statusName}`;
+		menuList.appendItem(statusString, statusName);
+	});
+
+	menuList.selectedIndex = statusNames.indexOf(
+		getPref(LABEL_NEW_ITEMS_PREF)! as string,
+	);
 }
 
 export default {
