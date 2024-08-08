@@ -54,40 +54,6 @@ enum ReadStatusFormat {
 	ShowIcon = 2,
 }
 
-function getItemReadStatus(item: Zotero.Item) {
-	const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-	return statusField.length == 1 ? statusField[0] : "";
-}
-
-function setItemReadStatus(item: Zotero.Item, statusName: string) {
-	setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
-	setItemExtraProperty(
-		item,
-		READ_DATE_EXTRA_FIELD,
-		new Date(Date.now()).toISOString(),
-	);
-	void item.saveTx();
-}
-
-function setItemsReadStatus(items: Zotero.Item[], statusName: string) {
-	for (const item of items) {
-		setItemReadStatus(item, statusName);
-	}
-}
-
-function setSelectedItemsReadStatus(statusName: string) {
-	setItemsReadStatus(getSelectedItems(), statusName);
-}
-
-function clearSelectedItemsReadStatus() {
-	const items = getSelectedItems();
-	for (const item of items) {
-		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-		void item.saveTx();
-	}
-}
-
 /**
  * Return selected regular items
  */
@@ -428,7 +394,7 @@ export default class ZoteroReadingList {
 					item.isRegularItem(),
 				);
 
-				setItemsReadStatus(
+				this.setItemsReadStatus(
 					items,
 					getPref(LABEL_NEW_ITEMS_PREF)! as string,
 				);
