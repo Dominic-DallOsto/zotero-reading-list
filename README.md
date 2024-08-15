@@ -23,8 +23,8 @@ You can also remove an item's read status through the right click menu or with t
 
 1. Download the latest release [here](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)
 2. Save the .xpi file (in Firefox, Right click -> Save Link As)
-3. Install in Zotero (Tools -> Add-ons -> Gear icon in the top right -> Install Add-on From File -> Select the .xpi file you downloaded)
-4. Restart Zotero to ensure proper initialisation of the Add-on
+3. Install in Zotero (Tools -> Plugins -> Gear icon in the top right -> Install Plugin From File -> Select the .xpi file you downloaded)
+4. Restart Zotero to ensure proper initialisation of the Plugin
 5. Right click on the item pane column header and enable the Read Status column (see below)
 
 ![image](https://github.com/Dominic-DallOsto/zotero-reading-list/assets/26859884/e0dcc5b3-ffee-4120-96c8-81e6903d30b7)
