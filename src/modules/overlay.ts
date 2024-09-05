@@ -182,7 +182,7 @@ export default class ZoteroReadingList {
 		initialiseDefaultPref(TAG_SYNCHRONISATION_PREF, false);
 		initialiseDefaultPref(
 			TAG_SYNCHRONISATION_FORMAT_PREF,
-			TagSynchronisationFormat.NoEmoji,
+			TagSynchronisationFormat.ShowEmoji,
 		);
 	}
 
