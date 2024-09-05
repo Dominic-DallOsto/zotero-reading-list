@@ -31,6 +31,10 @@ pref-statuslabeltable-button-reset = Reset to Default
 pref-tag-synchronisation-title = Tag and Read Status Synchronisation
 pref-tag-synchronisation-button-tags-to-readstatus = Update Read Status to Match Tags
 pref-tag-synchronisation-button-readstatus-to-tags = Update Tags to Match Read Status
+pref-tag-synchronisation-format-emoji =
+    .label = Show emoji in tags
+pref-tag-synchronisation-format-noemoji =
+    .label = Don't show emoji in tags
 
 pref-openitemtable-title = Custom Status Changes When Opening Item
 pref-openitemtable-header-statusfrom = Status From
