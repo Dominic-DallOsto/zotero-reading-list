@@ -246,7 +246,9 @@ export default class ZoteroReadingList {
 				getPrefGlobalName(READ_STATUS_FORMAT_PREF),
 				async (value: boolean) => {
 					await this.removeReadStatusColumn();
+					this.removeRightClickMenu();
 					await this.addReadStatusColumn();
+					this.addRightClickMenuPopup();
 				},
 				true,
 			),
@@ -392,7 +394,7 @@ export default class ZoteroReadingList {
 				this.statusNames.map((status_name: string) => {
 					return {
 						tag: "menuitem",
-						label: status_name,
+						label: this.formatStatusName(status_name),
 						commandListener: (event) =>
 							setSelectedItemsReadStatus(status_name),
 					};
