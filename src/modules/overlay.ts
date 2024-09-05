@@ -55,11 +55,18 @@ export const MODIFIER_MASK_SHIFT = 4;
 export const MODIFIER_MASK_META = 8;
 export const SET_READ_STATUS_TAGS_PREF = "set-read-status-tags";
 export const TAG_SYNCHRONISATION = "tag-synchronisation";
+export const TAG_SYNCHRONISATION_PREF = "tag-synchronisation";
+export const TAG_SYNCHRONISATION_FORMAT_PREF = "tag-synchronisation-format";
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
 	ShowText = 1,
 	ShowIcon = 2,
+}
+
+enum TagSynchronisationFormat {
+	ShowEmoji = 0,
+	NoEmoji = 1,
 }
 
 /**
@@ -335,7 +342,11 @@ export default class ZoteroReadingList {
 				LABEL_NEW_ITEMS_PREF_DISABLED,
 			);
 		}
-		initialiseDefaultPref(TAG_SYNCHRONISATION, false);
+		initialiseDefaultPref(TAG_SYNCHRONISATION_PREF, false);
+		initialiseDefaultPref(
+			TAG_SYNCHRONISATION_FORMAT_PREF,
+			TagSynchronisationFormat.NoEmoji,
+		);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -465,9 +476,9 @@ export default class ZoteroReadingList {
 	}
 
 	/**
-	 * Format name of status to localise text and include icon if enabled.
+	 * Format name of status to include icon if enabled.
 	 * @param {string} statusName - The name of the status.
-	 * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
+	 * @returns {String} Name of the status, possibly prefixed with the corresponding icon.
 	 */
 	formatStatusName(statusName: string): string {
 		switch (getPref(READ_STATUS_FORMAT_PREF) as ReadStatusFormat) {
@@ -485,6 +496,27 @@ export default class ZoteroReadingList {
 				return statusIndex > -1
 					? `${this.statusIcons[statusIndex]}`
 					: statusName;
+			}
+		}
+	}
+
+	/**
+	 * Format tag to include icon if enabled.
+	 * @param {string} statusName - The name of the status.
+	 * @returns {String} Name of the status, possibly prefixed with the corresponding icon.
+	 */
+	formatTag(statusName: string): string {
+		switch (
+			getPref(TAG_SYNCHRONISATION_FORMAT_PREF) as TagSynchronisationFormat
+		) {
+			case TagSynchronisationFormat.ShowEmoji: {
+				const statusIndex = this.statusNames.indexOf(statusName);
+				return statusIndex > -1
+					? `${this.statusIcons[statusIndex]} ${statusName}`
+					: statusName;
+			}
+			case TagSynchronisationFormat.NoEmoji: {
+				return statusName;
 			}
 		}
 	}
@@ -759,7 +791,7 @@ export default class ZoteroReadingList {
 			READ_DATE_EXTRA_FIELD,
 			new Date(Date.now()).toISOString(),
 		);
-		if (getPref(TAG_SYNCHRONISATION)) {
+		if (getPref(TAG_SYNCHRONISATION_PREF)) {
 			this.setItemReadStatusTag(item, statusName, false);
 		}
 		if (save) {
@@ -773,7 +805,9 @@ export default class ZoteroReadingList {
 		save: boolean = true,
 	) {
 		this.clearItemReadStatusTags(item);
-		item.setTags([{ tag: statusName, type: TAG_TYPE_AUTOMATIC }]);
+		item.setTags([
+			{ tag: this.formatTag(statusName), type: TAG_TYPE_AUTOMATIC },
+		]);
 		if (save) {
 			void item.saveTx();
 		}
@@ -792,7 +826,7 @@ export default class ZoteroReadingList {
 	clearItemReadStatus(item: Zotero.Item) {
 		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
 		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-		if (getPref(TAG_SYNCHRONISATION)) {
+		if (getPref(TAG_SYNCHRONISATION_PREF)) {
 			this.clearItemReadStatusTags(item);
 		}
 		void item.saveTx();
