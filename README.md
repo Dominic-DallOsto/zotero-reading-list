@@ -1,5 +1,7 @@
 # Zotero Reading List
 
+![downloads](https://img.shields.io/github/downloads/dominic-dallosto/zotero-reading-list/latest/zotero-reading-list.xpi?style=flat-square&label=Downloads%20(latest%20version))
+
 An extension for Zotero that allows setting the read status of items.
 
 -   default read statuses are: `⭐ New`, `📙 To Read`, `📖 In Progress`, `📗 Read`, or `📕 Not Reading`
