@@ -499,22 +499,28 @@ export default class ZoteroReadingList {
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
 		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
 		// Or Alt+0 to clear the current read status
-		const possibleKeyCombinations = [
-			...Array(Math.min(8, this.statusNames.length)).keys(),
-		].map((num) => `Digit${(num + 1).toString()}`);
-		const clearStatusKeyCombinations = ["Backquote"];
+		// Need to use keyboard event `code` instead of `key` to support different keyboard
+		// layouts, as well as fix problems with Mac #9 #53
+		const possibleKeyCombinations: Map<string, number> = new Map();
+		for (let num = 0; num < this.statusNames.length; num++) {
+			possibleKeyCombinations.set(`Digit${num + 1}`, num);
+			possibleKeyCombinations.set(`Numpad${num + 1}`, num);
+		}
+		const clearStatusKeyCombinations = ["Digit0", "Numpad0"];
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
 			keyboardEvent.altKey
 		) {
-			if (possibleKeyCombinations.includes(keyboardEvent.code)) {
+			if (possibleKeyCombinations.has(keyboardEvent.code)) {
 				const selectedStatus =
 					this.statusNames[
-						possibleKeyCombinations.indexOf(keyboardEvent.code)
+						possibleKeyCombinations.get(keyboardEvent.code)!
 					];
 				void setSelectedItemsReadStatus(selectedStatus);
-			} else if (clearStatusKeyCombinations.includes(keyboardEvent.code)) {
+			} else if (
+				clearStatusKeyCombinations.includes(keyboardEvent.code)
+			) {
 				void clearSelectedItemsReadStatus();
 			}
 		}
