@@ -501,40 +501,20 @@ export default class ZoteroReadingList {
 		// Or Alt+0 to clear the current read status
 		const possibleKeyCombinations = [
 			...Array(Math.min(8, this.statusNames.length)).keys(),
-		].map((num) => (num + 1).toString());
-		// On Mac, Alt is equivalent to Opt but this changes the key of the event
-		// eg. 1 -> ¡
-		// see #9
-		const possibleKeyCombinationsMac = [
-			"¡",
-			"™",
-			"£",
-			"¢",
-			"∞",
-			"§",
-			"¶",
-			"•",
-			"ª",
-		].slice(0, possibleKeyCombinations.length);
-		const clearStatusKeyCombinations = ["0", "º"];
+		].map((num) => `Digit${(num + 1).toString()}`);
+		const clearStatusKeyCombinations = ["Backquote"];
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
 			keyboardEvent.altKey
 		) {
-			if (possibleKeyCombinations.includes(keyboardEvent.key)) {
+			if (possibleKeyCombinations.includes(keyboardEvent.code)) {
 				const selectedStatus =
 					this.statusNames[
-						possibleKeyCombinations.indexOf(keyboardEvent.key)
+						possibleKeyCombinations.indexOf(keyboardEvent.code)
 					];
 				void setSelectedItemsReadStatus(selectedStatus);
-			} else if (possibleKeyCombinationsMac.includes(keyboardEvent.key)) {
-				const selectedStatus =
-					this.statusNames[
-						possibleKeyCombinationsMac.indexOf(keyboardEvent.key)
-					];
-				void setSelectedItemsReadStatus(selectedStatus);
-			} else if (clearStatusKeyCombinations.includes(keyboardEvent.key)) {
+			} else if (clearStatusKeyCombinations.includes(keyboardEvent.code)) {
 				void clearSelectedItemsReadStatus();
 			}
 		}
