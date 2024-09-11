@@ -499,42 +499,28 @@ export default class ZoteroReadingList {
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
 		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
 		// Or Alt+0 to clear the current read status
-		const possibleKeyCombinations = [
-			...Array(Math.min(8, this.statusNames.length)).keys(),
-		].map((num) => (num + 1).toString());
-		// On Mac, Alt is equivalent to Opt but this changes the key of the event
-		// eg. 1 -> ¡
-		// see #9
-		const possibleKeyCombinationsMac = [
-			"¡",
-			"™",
-			"£",
-			"¢",
-			"∞",
-			"§",
-			"¶",
-			"•",
-			"ª",
-		].slice(0, possibleKeyCombinations.length);
-		const clearStatusKeyCombinations = ["0", "º"];
+		// Need to use keyboard event `code` instead of `key` to support different keyboard
+		// layouts, as well as fix problems with Mac #9 #53
+		const possibleKeyCombinations: Map<string, number> = new Map();
+		for (let num = 0; num < this.statusNames.length; num++) {
+			possibleKeyCombinations.set(`Digit${num + 1}`, num);
+			possibleKeyCombinations.set(`Numpad${num + 1}`, num);
+		}
+		const clearStatusKeyCombinations = ["Digit0", "Numpad0"];
 		if (
 			!keyboardEvent.ctrlKey &&
 			!keyboardEvent.shiftKey &&
 			keyboardEvent.altKey
 		) {
-			if (possibleKeyCombinations.includes(keyboardEvent.key)) {
+			if (possibleKeyCombinations.has(keyboardEvent.code)) {
 				const selectedStatus =
 					this.statusNames[
-						possibleKeyCombinations.indexOf(keyboardEvent.key)
+						possibleKeyCombinations.get(keyboardEvent.code)!
 					];
 				void setSelectedItemsReadStatus(selectedStatus);
-			} else if (possibleKeyCombinationsMac.includes(keyboardEvent.key)) {
-				const selectedStatus =
-					this.statusNames[
-						possibleKeyCombinationsMac.indexOf(keyboardEvent.key)
-					];
-				void setSelectedItemsReadStatus(selectedStatus);
-			} else if (clearStatusKeyCombinations.includes(keyboardEvent.key)) {
+			} else if (
+				clearStatusKeyCombinations.includes(keyboardEvent.code)
+			) {
 				void clearSelectedItemsReadStatus();
 			}
 		}
