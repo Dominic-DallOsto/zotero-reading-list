@@ -28,6 +28,13 @@ function onPrefsLoad(window: Window) {
 	fillAutomaticallyLabelNewItemsMenuList(window);
 }
 
+function resetPrefsMenu(window: Window) {
+	clearTableOpenItem(window);
+	setTableOpenItem(window);
+	clearAutomaticallyLabelNewItemsMenuList(window);
+	fillAutomaticallyLabelNewItemsMenuList(window);
+}
+
 function setTableStatusNames(window: Window) {
 	const tableBodyStatusNames = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
@@ -85,8 +92,7 @@ function resetTableStatusNames(window: Window) {
 	);
 	setTableStatusNames(window);
 	// if we change the statuses, need to reset the status lists here
-	clearTableOpenItem(window);
-	setTableOpenItem(window);
+	resetPrefsMenu(window);
 }
 
 function resetTableOpenItem(window: Window) {
@@ -218,11 +224,9 @@ function saveTableStatusNames(window: Window) {
 		);
 		return;
 	}
-
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
 	// if we change the statuses, need to reset the status lists here
-	clearTableOpenItem(window);
-	setTableOpenItem(window);
+	resetPrefsMenu(window);
 }
 
 function saveTableOpenItem(window: Window) {
@@ -388,6 +392,13 @@ function fillAutomaticallyLabelNewItemsMenuList(window: Window) {
 	menuList.selectedIndex = statusNames.indexOf(
 		getPref(LABEL_NEW_ITEMS_PREF)! as string,
 	);
+}
+
+function clearAutomaticallyLabelNewItemsMenuList(window: Window) {
+	const listRows = window.document.getElementById(
+		LABEL_NEW_ITEMS_MENU_LIST,
+	)?.children;
+	Array.from(listRows ?? []).map((row) => row.remove());
 }
 
 export default {
