@@ -32,7 +32,7 @@
 	},
 	"homepage": "https://github.com/Dominic-DallOsto/zotero-reading-list",
 	"dependencies": {
-		"zotero-plugin-toolkit": "^2.3.37"
+		"zotero-plugin-toolkit": "^4.0.6"
 	},
 	"devDependencies": {
 		"@types/node": "^20.10.4",
@@ -44,11 +44,11 @@
 		"eslint": "^8.55.0",
 		"eslint-config-prettier": "^9.1.0",
 		"prettier": "^3.1.1",
-		"release-it": "^17.0.1",
+		"release-it": "^17.7.0",
 		"replace-in-file": "^7.0.2",
 		"typescript": "^5.3.3",
-		"zotero-plugin-scaffold": "^0.0.33",
-		"zotero-types": "^2.1.0"
+		"zotero-plugin-scaffold": "^0.1.6",
+		"zotero-types": "^2.2.0"
 	},
 	"eslintConfig": {
 		"env": {

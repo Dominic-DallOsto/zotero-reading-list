@@ -371,11 +371,11 @@ export default class ZoteroReadingList {
 			image: `chrome://${config.addonRef}/content/icons/favicon.png`,
 			defaultXUL: true,
 		};
-		ztoolkit.PreferencePane.register(prefOptions);
+		void Zotero.PreferencePanes.register(prefOptions);
 	}
 
 	removePreferenceMenu() {
-		ztoolkit.PreferencePane.unregister(config.addonID);
+		Zotero.PreferencePanes.unregister(config.addonID);
 	}
 
 	addRightClickMenuPopup() {
