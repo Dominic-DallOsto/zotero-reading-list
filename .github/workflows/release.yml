@@ -76,7 +76,7 @@ jobs:
 
             - name: release update.json
               run: |
-                  npm run release -- --no-increment --no-git --github.release --github.version=update --github.releaseName=update --github.makeLatest=false --github.assets="build/update*.json" --ci --VV
+                  npm run release -- --no-increment --no-git --git.tagName=update --github.release --github.releaseName=Update --github.makeLatest=false --github.assets="build/update*.json" --ci --VV
                   sleep 1s
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
