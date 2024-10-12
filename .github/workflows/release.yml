@@ -75,11 +75,13 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: release update.json
-              run: |
-                  npm run release -- --no-increment --no-git --git.tagName=update --github.release --github.releaseName=Update --github.makeLatest=false --github.assets="build/update*.json" --ci --VV
-                  sleep 1s
+              uses: softprops/action-gh-release@v2
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: release
+                  files: update*.json
+                  make_latest: false
 
             - name: Notify release
               uses: apexskier/github-release-commenter@v1
