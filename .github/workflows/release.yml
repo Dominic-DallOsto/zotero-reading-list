@@ -80,7 +80,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   tag_name: release
-                  files: update*.json
+                  files: build/update*.json
                   make_latest: false
 
             - name: Notify release
