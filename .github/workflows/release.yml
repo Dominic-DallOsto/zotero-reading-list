@@ -8,15 +8,15 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: install node
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v4
               with:
                   node-version: 20
 
             - name: Cache node dependencies
-              uses: actions/cache@v2
+              uses: actions/cache@v4
               env:
                   cache-name: cache-dependencies
               with:
@@ -41,15 +41,15 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags/v')
         steps:
             - name: checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: install node
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v4
               with:
                   node-version: 20
 
             - name: Cache node dependencies
-              uses: actions/cache@v2
+              uses: actions/cache@v4
               env:
                   cache-name: cache-dependencies
               with:
@@ -70,6 +70,13 @@ jobs:
             - name: release
               run: |
                   npm run release -- --no-increment --no-git --github.release --ci --VV
+                  sleep 1s
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: release update.json
+              run: |
+                  npm run release -- --no-increment --no-git --github.release --github.releaseName=update --github.makeLatest=false --github.assets="build/update*.json" --ci --VV
                   sleep 1s
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
