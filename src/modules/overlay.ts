@@ -655,15 +655,35 @@ export default class ZoteroReadingList {
 
 	clearItemReadStatusTags(item: Zotero.Item) {
 		item.getTags()
-			.filter((tag) => this.statusNames.indexOf(tag.tag) != -1)
-			.forEach((tag) => item.removeTag(tag.tag));
+			.map((tag) => tag.tag)
+			.filter((tag) => {
+				// get first read status that is included in this tag (in case the tag has an emoji)
+				// todo: need to ensure one read status isn't a substring of another
+				for (const statusName of this.statusNames) {
+					if (tag.includes(statusName)) {
+						return true;
+					}
+				}
+				return false;
+			})
+			.forEach((tag) => item.removeTag(tag));
 	}
 
 	getItemReadStatusTags(item: Zotero.Item) {
 		return item
 			.getTags()
 			.map((tag) => tag.tag)
-			.filter((tag) => this.statusNames.indexOf(tag) != -1);
+			.map((tag) => {
+				// get first read status that is included in this tag (in case the tag has an emoji)
+				// todo: need to ensure one read status isn't a substring of another
+				for (const statusName of this.statusNames) {
+					if (tag.includes(statusName)) {
+						return statusName;
+					}
+				}
+				return false;
+			})
+			.filter((value) => typeof value === "string");
 	}
 
 	createProgressPopup() {
