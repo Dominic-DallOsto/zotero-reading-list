@@ -675,9 +675,9 @@ export default class ZoteroReadingList {
 	// update all items' read statuses to match their tags, or clear their read status if they have no tags
 	async updateAllItemsReadStatusesToMatchTags() {
 		const progressWindow = this.createProgressPopup();
-		const allItems = await Zotero.Items.getAll(
-			Zotero.Libraries.userLibraryID,
-		);
+		const allItems = (
+			await Zotero.Items.getAll(Zotero.Libraries.userLibraryID)
+		).filter((item) => item.isRegularItem());
 		const progress = new progressWindow.ItemProgress(
 			"",
 			getString("tags-to-readstatus-message-progress", {
@@ -723,9 +723,9 @@ export default class ZoteroReadingList {
 	// update all items' tags to match their read statuses, or clear them if they have no read status
 	async updateAllItemsTagsToMatchReadStatuses() {
 		const progressWindow = this.createProgressPopup();
-		const allItems = await Zotero.Items.getAll(
-			Zotero.Libraries.userLibraryID,
-		);
+		const allItems = (
+			await Zotero.Items.getAll(Zotero.Libraries.userLibraryID)
+		).filter((item) => item.isRegularItem());
 		const progress = new progressWindow.ItemProgress(
 			"",
 			getString("readstatus-to-tags-message-progress", {
