@@ -2,6 +2,7 @@ import { ColumnOptions } from "zotero-plugin-toolkit/dist/helpers/virtualizedTab
 import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
 import hooks from "./hooks";
 import prefsMenu from "./prefs-menu";
+import ZoteroReadingList from "./modules/overlay";
 import { createZToolkit } from "./utils/ztoolkit";
 
 class Addon {
@@ -19,6 +20,7 @@ class Addon {
 			rows: Array<{ [dataKey: string]: string }>;
 		};
 		dialog?: DialogHelper;
+		zoteroReadingListOverlay?: ZoteroReadingList;
 	};
 	// Lifecycle hooks
 	public hooks: typeof hooks;
