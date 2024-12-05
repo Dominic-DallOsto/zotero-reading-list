@@ -4,3 +4,6 @@ node_modules
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+# for some reason the output of prettier for .xhtml doesn't match the automatic formatting in VSCode, which is nicer
+# so, disable formatting for .xhtml files
+*.xhtml

@@ -117,7 +117,7 @@ export default class ZoteroReadingList {
 			getPref(STATUS_NAME_AND_ICON_LIST_PREF)! as string,
 		);
 
-		void this.addReadStatusColumn();
+		this.addReadStatusColumn();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
 
@@ -136,7 +136,7 @@ export default class ZoteroReadingList {
 	}
 
 	public unload() {
-		void this.removeReadStatusColumn();
+		this.removeReadStatusColumn();
 		this.removePreferenceMenu();
 		this.removeRightClickMenu();
 		this.removeKeyboardShortcutListener();
@@ -244,33 +244,33 @@ export default class ZoteroReadingList {
 			// refresh read status column on format change
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(READ_STATUS_FORMAT_PREF),
-				async (value: boolean) => {
-					await this.removeReadStatusColumn();
+				(value: boolean) => {
+					this.removeReadStatusColumn();
 					this.removeRightClickMenu();
-					await this.addReadStatusColumn();
+					this.addReadStatusColumn();
 					this.addRightClickMenuPopup();
 				},
 				true,
 			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(READ_STATUS_FORMAT_HEADER_SHOW_ICON),
-				async (value: boolean) => {
-					await this.removeReadStatusColumn();
-					await this.addReadStatusColumn();
+				(value: boolean) => {
+					this.removeReadStatusColumn();
+					this.addReadStatusColumn();
 				},
 				true,
 			),
 			Zotero.Prefs.registerObserver(
 				getPrefGlobalName(STATUS_NAME_AND_ICON_LIST_PREF),
-				async (value: string) => {
+				(value: string) => {
 					[this.statusNames, this.statusIcons] =
 						prefStringToList(value);
 					this.removeRightClickMenu();
 					this.addRightClickMenuPopup();
 					this.removeKeyboardShortcutListener();
 					this.addKeyboardShortcutListener();
-					await this.removeReadStatusColumn();
-					await this.addReadStatusColumn();
+					this.removeReadStatusColumn();
+					this.addReadStatusColumn();
 				},
 				true,
 			),
@@ -287,11 +287,11 @@ export default class ZoteroReadingList {
 		}
 	}
 
-	async addReadStatusColumn() {
+	addReadStatusColumn() {
 		const formatStatusName = (statusName: string) =>
 			this.formatStatusName(statusName);
-		this.itemTreeReadStatusColumnId =
-			await Zotero.ItemTreeManager.registerColumns({
+		this.itemTreeReadStatusColumnId = Zotero.ItemTreeManager.registerColumn(
+			{
 				dataKey: READ_STATUS_COLUMN_ID,
 				label: getString("read-status"),
 				// If we just want to show the icon, overwrite the label with htmlLabel (#40)
@@ -326,7 +326,8 @@ export default class ZoteroReadingList {
 					return cell;
 				},
 				zoteroPersist: ["width", "hidden", "sortDirection"],
-			});
+			},
+		);
 	}
 
 	/**
@@ -354,9 +355,9 @@ export default class ZoteroReadingList {
 		}
 	}
 
-	async removeReadStatusColumn() {
+	removeReadStatusColumn() {
 		if (this.itemTreeReadStatusColumnId) {
-			await Zotero.ItemTreeManager.unregisterColumns(
+			Zotero.ItemTreeManager.unregisterColumn(
 				this.itemTreeReadStatusColumnId,
 			);
 			this.itemTreeReadStatusColumnId = undefined;
@@ -548,7 +549,7 @@ export default class ZoteroReadingList {
 		$patch$(
 			Zotero.Utilities.Internal,
 			"itemToExportFormat",
-			// eslint-disable-next-line @typescript-eslint/ban-types
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 			(original: Function) =>
 				function Zotero_Utilities_Internal_itemToExportFormat(
 					this: object,

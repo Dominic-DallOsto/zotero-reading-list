@@ -53,7 +53,7 @@ function setTableOpenItem(window: Window) {
 	if (tableBodyOpenItem?.parentElement) {
 		tableBodyOpenItem.parentElement.hidden = !getPref(
 			LABEL_ITEMS_WHEN_OPENING_FILE_PREF,
-		) as boolean;
+		);
 	}
 }
 
@@ -373,7 +373,7 @@ function createTableRowOpenItem(
 function fillAutomaticallyLabelNewItemsMenuList(window: Window) {
 	const menuList = window.document.getElementById(
 		LABEL_NEW_ITEMS_MENU_LIST,
-	)! as XUL.MenuList;
+	)! as unknown as XULMenuListElement;
 
 	menuList.appendItem(
 		getString("autolabelnewitems-disabled"),

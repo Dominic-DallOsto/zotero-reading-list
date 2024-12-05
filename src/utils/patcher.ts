@@ -19,7 +19,7 @@ export function patch(
 		throw new Error(
 			`${methodObject}.${methodName} is already patched by ${patchMarker}`,
 		);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
 	methodObject[methodName] = patcher(originalFunction);
 	methodObject[methodName][patchMarker] = true;
 	methodObject[methodName][patchMarkerOriginal] = originalFunction;

@@ -42,6 +42,7 @@ export function waitUtilAsync(
 				resolve();
 			} else if (Date.now() - start > timeout) {
 				ztoolkit.getGlobal("clearInterval")(intervalId);
+				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 				reject();
 			}
 		}, interval);

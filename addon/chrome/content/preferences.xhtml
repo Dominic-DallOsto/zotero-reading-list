@@ -1,53 +1,30 @@
 <linkset>
 	<html:link rel="localization" href="__addonRef__-preferences.ftl" />
-	<html:link
-		rel="stylesheet"
-		href="chrome://__addonRef__/content/preferences.css"
-	/>
+	<html:link rel="stylesheet" href="chrome://__addonRef__/content/preferences.css" />
 </linkset>
-<vbox
-	id="zotero-prefpane-__addonRef__"
-	onload="Zotero.__addonInstance__.prefsMenu.onPrefsLoad(window)"
-	class="main-section"
->
+<vbox id="zotero-prefpane-__addonRef__" onload="Zotero.__addonInstance__.prefsMenu.onPrefsLoad(window)"
+	class="main-section">
 	<groupbox>
 		<label>
 			<html:h2 data-l10n-id="pref-title"></html:h2>
 		</label>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
+		<checkbox id="zotero-prefpane-__addonRef__-enable-keyboard-shortcuts"
 			preference="extensions.zotero.__addonRef__.enable-keyboard-shortcuts"
-			data-l10n-id="pref-enable-keyboard-shortcuts"
-		/>
+			data-l10n-id="pref-enable-keyboard-shortcuts" />
 	</groupbox>
 	<!-- Read Status column format -->
 	<groupbox>
 		<label>
-			<html:h2
-				data-l10n-id="pref-readstatuscolumn-format-title"
-			></html:h2>
+			<html:h2 data-l10n-id="pref-readstatuscolumn-format-title"></html:h2>
 		</label>
-		<radiogroup
-			preference="extensions.zotero.__addonRef__.read-status-format"
-		>
-			<radio
-				value="0"
-				data-l10n-id="pref-readstatuscolumn-format-showboth"
-			/>
-			<radio
-				value="1"
-				data-l10n-id="pref-readstatuscolumn-format-showtext"
-			/>
-			<radio
-				value="2"
-				data-l10n-id="pref-readstatuscolumn-format-showicon"
-			/>
+		<radiogroup preference="extensions.zotero.__addonRef__.read-status-format">
+			<radio value="0" data-l10n-id="pref-readstatuscolumn-format-showboth" />
+			<radio value="1" data-l10n-id="pref-readstatuscolumn-format-showtext" />
+			<radio value="2" data-l10n-id="pref-readstatuscolumn-format-showicon" />
 		</radiogroup>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-readstatuscolumn-header-showicon"
+		<checkbox id="zotero-prefpane-__addonRef__-readstatuscolumn-header-showicon"
 			preference="extensions.zotero.__addonRef__.readstatuscolumn-format-header-showicon"
-			data-l10n-id="pref-readstatuscolumn-header-showicon"
-		/>
+			data-l10n-id="pref-readstatuscolumn-header-showicon" />
 	</groupbox>
 	<!-- Status names -->
 	<groupbox>
@@ -57,34 +34,22 @@
 		<html:table>
 			<html:thead>
 				<html:tr>
-					<html:th
-						data-l10n-id="pref-statuslabeltable-header-statusicon"
-					></html:th>
-					<html:th
-						data-l10n-id="pref-statuslabeltable-header-statusname"
-					></html:th>
-					<html:th
-						data-l10n-id="pref-statuslabeltable-header-reorder"
-					></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-statusicon"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-statusname"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-reorder"></html:th>
 				</html:tr>
 			</html:thead>
 			<html:tbody id="statusnames-table-body"> </html:tbody>
-			<html:button
-				id="statusnames-save-add"
+			<html:button id="statusnames-save-add"
 				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowStatusNames(window)"
-				data-l10n-id="pref-statuslabeltable-button-add"
-			/>
+				data-l10n-id="pref-statuslabeltable-button-add" />
 			<br />
-			<html:button
-				id="statusnames-save-button"
+			<html:button id="statusnames-save-button"
 				onclick="Zotero.__addonInstance__.prefsMenu.saveTableStatusNames(window)"
-				data-l10n-id="pref-statuslabeltable-button-save"
-			/>
-			<html:button
-				id="statusnames-reset-button"
+				data-l10n-id="pref-statuslabeltable-button-save" />
+			<html:button id="statusnames-reset-button"
 				onclick="Zotero.__addonInstance__.prefsMenu.resetTableStatusNames(window)"
-				data-l10n-id="pref-statuslabeltable-button-reset"
-			/>
+				data-l10n-id="pref-statuslabeltable-button-reset" />
 		</html:table>
 	</groupbox>
 
@@ -93,24 +58,16 @@
 		<label>
 			<html:h2 data-l10n-id="pref-openitemtable-title"></html:h2>
 		</label>
-		<checkbox
-			id="zotero-prefpane-__addonRef__-label-items-when-opening-file"
+		<checkbox id="zotero-prefpane-__addonRef__-label-items-when-opening-file"
 			preference="extensions.zotero.__addonRef__.label-items-when-opening-file"
 			data-l10n-id="pref-label-items-when-opening-file"
-			onclick="Zotero.__addonInstance__.prefsMenu.setTableVisibilityOpenItem(window)"
-		/>
+			onclick="Zotero.__addonInstance__.prefsMenu.setTableVisibilityOpenItem(window)" />
 		<html:table>
 			<html:thead>
 				<html:tr>
-					<html:th
-						data-l10n-id="pref-openitemtable-header-statusfrom"
-					></html:th>
-					<html:th
-						data-l10n-id="pref-openitemtable-header-statusto"
-					></html:th>
-					<html:th
-						data-l10n-id="pref-openitemtable-header-delete"
-					></html:th>
+					<html:th data-l10n-id="pref-openitemtable-header-statusfrom"></html:th>
+					<html:th data-l10n-id="pref-openitemtable-header-statusto"></html:th>
+					<html:th data-l10n-id="pref-openitemtable-header-delete"></html:th>
 				</html:tr>
 			</html:thead>
 			<html:tbody id="openitem-table-body">
@@ -130,22 +87,15 @@
 					</html:td>
 				</html:tr>
 			</html:tbody>
-			<html:button
-				id="openitem-save-add"
-				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowOpenItem(window)"
-				data-l10n-id="pref-openitemtable-button-add"
-			/>
+			<html:button id="openitem-save-add" onclick="Zotero.__addonInstance__.prefsMenu.addTableRowOpenItem(window)"
+				data-l10n-id="pref-openitemtable-button-add" />
 			<br />
-			<html:button
-				id="openitem-save-button"
+			<html:button id="openitem-save-button"
 				onclick="Zotero.__addonInstance__.prefsMenu.saveTableOpenItem(window)"
-				data-l10n-id="pref-openitemtable-button-save"
-			/>
-			<html:button
-				id="openitem-reset-button"
+				data-l10n-id="pref-openitemtable-button-save" />
+			<html:button id="openitem-reset-button"
 				onclick="Zotero.__addonInstance__.prefsMenu.resetTableOpenItem(window)"
-				data-l10n-id="pref-openitemtable-button-reset"
-			/>
+				data-l10n-id="pref-openitemtable-button-reset" />
 		</html:table>
 	</groupbox>
 
@@ -154,18 +104,13 @@
 		<label>
 			<html:h2 data-l10n-id="pref-autolabelnewitems-title"></html:h2>
 		</label>
-		<menulist
-			id="automatically-label-new-items-menulist"
-			native="true"
-			preference="extensions.zotero.__addonRef__.label-new-items"
-		>
+		<menulist id="automatically-label-new-items-menulist" native="true"
+			preference="extensions.zotero.__addonRef__.label-new-items">
 			<menupopup> </menupopup>
 		</menulist>
 	</groupbox>
 </vbox>
 <vbox class="main-section">
-	<html:label
-		data-l10n-id="pref-help"
-		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
-	></html:label>
+	<html:label data-l10n-id="pref-help"
+		data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'></html:label>
 </vbox>
