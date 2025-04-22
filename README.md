@@ -19,17 +19,21 @@ You can also remove an item's read status through the right click menu or with t
 
 ## Installation
 
-> **Note:** The last release supporting Zotero 6 is [v0.3.2](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/tag/v0.3.2). Versions starting from v1.0.0 only support Zotero 7, but the extension should automatically update to the new version when you upgrade your Zotero version.
+| Zotero version | Extension version to use                                                              |
+| -------------- | ------------------------------------------------------------------------------------- |
+| 6              | [v0.3.2](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/tag/v0.3.2) |
+| 7.0            | [v1.5.8](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/tag/v1.5.8) |
+| 7.1            | [Latest](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)     |
 
-> **Note:** Release v1.3.4 and v1.3.5 broke the auto updating feature of the extension. If you have one of these versions you will need to manually update the extension, after which automatic updating will work again
-
-1. Download the latest release [here](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)
+1. Download the latest release based on your Zotero version from the table above
 2. Save the .xpi file (in Firefox, Right click -> Save Link As)
 3. Install in Zotero (Tools -> Plugins -> Gear icon in the top right -> Install Plugin From File -> Select the .xpi file you downloaded)
 4. Restart Zotero to ensure proper initialisation of the Plugin
 5. Right click on the item pane column header and enable the Read Status column (see below)
 
 ![image](https://github.com/Dominic-DallOsto/zotero-reading-list/assets/26859884/e0dcc5b3-ffee-4120-96c8-81e6903d30b7)
+
+> **Note:** Release v1.3.4 and v1.3.5 broke the auto updating feature of the extension. If you have one of these versions you will need to manually update the extension, after which automatic updating will work again
 
 ## Options
 
