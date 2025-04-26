@@ -92,7 +92,7 @@ function getSelectedItems() {
 	return ZoteroPane.getSelectedItems().filter((item) => item.isRegularItem());
 }
 
-export const FORBIDDEN_PREF_STRING_CHARACTERS = new Set(";|");
+export const FORBIDDEN_PREF_STRING_CHARACTERS = new Set(":;|");
 
 export function prefStringToList(prefString: string) {
 	const [statusString, iconString] = prefString.split("|");
