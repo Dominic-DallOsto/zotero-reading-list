@@ -2,11 +2,15 @@ function isString(argument: any): argument is string {
 	return typeof argument == "string";
 }
 
+function escapeRegExp(s: string) {
+	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
 export function getFieldValueFromExtraData(
 	extraData: string,
 	fieldName: string,
 ) {
-	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
+	const pattern = new RegExp(`^${escapeRegExp(fieldName)}:(.+)$`, "i");
 	return extraData
 		.split(/\n/g)
 		.map((line: string) => {
@@ -22,7 +26,7 @@ export function removeFieldValueFromExtraData(
 	extraData: string,
 	fieldName: string,
 ) {
-	const pattern = new RegExp(`^${fieldName}:(.+)$`, "i");
+	const pattern = new RegExp(`^${escapeRegExp(fieldName)}:(.+)$`, "i");
 	return extraData
 		.split(/\n/g)
 		.filter((line) => !line.match(pattern))
