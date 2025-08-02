@@ -32,7 +32,7 @@
 	},
 	"homepage": "https://github.com/Dominic-DallOsto/zotero-reading-list",
 	"dependencies": {
-		"zotero-plugin-toolkit": "^4.0.11"
+		"zotero-plugin-toolkit": "^5.0.1"
 	},
 	"devDependencies": {
 		"@types/node": "^24.1.0",
