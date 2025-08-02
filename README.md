@@ -23,7 +23,7 @@ You can also remove an item's read status through the right click menu or with t
 | -------------- | ------------------------------------------------------------------------------------- |
 | 6              | [v0.3.2](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/tag/v0.3.2) |
 | 7.0            | [v1.5.8](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/tag/v1.5.8) |
-| 7.1            | [Latest](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)     |
+| 7.1 / 8.0      | [Latest](https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest)     |
 
 1. Download the latest release based on your Zotero version from the table above
 2. Save the .xpi file (in Firefox, Right click -> Save Link As)
