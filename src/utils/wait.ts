@@ -29,7 +29,7 @@ export function waitUntil(
  * @param interval
  * @param timeout
  */
-export function waitUtilAsync(
+export function waitUntilAsync(
 	condition: () => boolean,
 	interval = 100,
 	timeout = 10000,
