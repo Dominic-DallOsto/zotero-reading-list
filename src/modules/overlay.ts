@@ -15,7 +15,10 @@ import {
 	clearItemExtraProperty,
 	removeFieldValueFromExtraData,
 } from "../utils/extraField";
-import { fixStyleSheetBug } from "../utils/itemTreeStyleSheetBug";
+import {
+	fixStyleSheetBug,
+	cleanupStyleSheetBugFix,
+} from "../utils/itemTreeStyleSheetBug";
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
@@ -117,6 +120,8 @@ export default class ZoteroReadingList {
 			getPref(STATUS_NAME_AND_ICON_LIST_PREF)! as string,
 		);
 
+		// run this before we add the custom column so column resizing works properly
+		void fixStyleSheetBug(config.addonID);
 		this.addReadStatusColumn();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
@@ -144,6 +149,7 @@ export default class ZoteroReadingList {
 		this.removeFileOpenedListener();
 		this.removePreferenceUpdateObservers();
 		this.unpatchExportFunction();
+		cleanupStyleSheetBugFix(config.addonID);
 	}
 
 	initialiseDefaultPreferences() {
@@ -328,8 +334,6 @@ export default class ZoteroReadingList {
 				zoteroPersist: ["width", "hidden", "sortDirection"],
 			},
 		);
-
-		void fixStyleSheetBug("reading-list");
 	}
 
 	/**

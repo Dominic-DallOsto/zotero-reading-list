@@ -1,77 +1,74 @@
 import { waitUntilAsync } from "./wait";
+import { patch as $patch$, unpatch as $unpatch$ } from "./patcher";
 
-export async function fixStyleSheetBug(pluginID: string) {
+// the problem is that duplicate flex-basis rules get added every time the columns are updated
+// and these cause the column resizing to break
+// so we stop any duplicate rules being added
+
+export async function fixStyleSheetBug(addonID: string) {
 	// make sure we have the style sheet where the buggy rules get added
 	await waitUntilAsync(
-		() => findStyleSheetIndex(pluginID) != -1,
+		() => findStyleSheetIndex(addonID) != -1,
 		100,
 		60000,
 	).catch(() => {
 		throw new Error("Couldn't find Reading List style sheet");
 	});
+	const sheet = document.styleSheets[findStyleSheetIndex(addonID)];
 
-	// it takes some time for the ItemTreeManager to add these rules
-	// so we wait until new rules appear and then remove them
-	// but rules can be added multiple times so we repeat this process until
-	// no new rules have been added for 5 seconds
-	const sheet = document.styleSheets[findStyleSheetIndex(pluginID)];
-	deleteBrokenStyleSheetRules(sheet, pluginID);
-
-	for (const _repeats of Array(10)) {
-		const startingRules = sheet.rules.length;
-		ztoolkit.log(`rules before ${sheet.rules.length}`);
-		let toBreak = false;
-		await waitUntilAsync(
-			() => sheet.rules.length > startingRules,
-			100,
-			5000,
-		).then(
-			() => {
-				deleteBrokenStyleSheetRules(sheet, pluginID);
-				ztoolkit.log("New rules were added so deleted them");
+	$patch$(
+		sheet,
+		"insertRule",
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+		(original: Function) =>
+			function insertRulePatch(this: CSSStyleSheet) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, prefer-rest-params
+				const ruleString: string = arguments[0];
+				if (
+					ruleMatches(ruleString, addonID) &&
+					getSheetAddonFlexBasisRules(this, addonID).length > 0
+				) {
+					// we already have one copy of this rule so don't add it again
+					return;
+				}
+				// otherwise, add this rule like normal
+				// eslint-disable-next-line prefer-rest-params
+				original.apply(this, arguments);
 			},
-			() => {
-				ztoolkit.log("No new rules were added, so not doing anything");
-				toBreak = true;
-			},
-		);
-		if (toBreak) {
-			break;
-		}
-		ztoolkit.log(`rules after ${sheet.rules.length}`);
-	}
+	);
 }
 
-function findStyleSheetIndex(pluginID: string) {
+export function cleanupStyleSheetBugFix(addonID: string) {
+	const sheet = document.styleSheets[findStyleSheetIndex(addonID)];
+	$unpatch$(sheet, "insertRule");
+}
+
+function findStyleSheetIndex(addonID: string) {
 	for (const [sheetIndex, sheet] of [...document.styleSheets].entries()) {
-		if (getSheetFlexBasisRules(sheet, pluginID).length > 0) {
+		if (getSheetAddonFlexBasisRules(sheet, addonID).length > 0) {
 			return sheetIndex;
 		}
 	}
 	return -1;
 }
 
-function getSheetFlexBasisRules(
+function getSheetAddonFlexBasisRules(
 	sheet: CSSStyleSheet,
-	pluginID: string,
+	addonID: string,
 ): number[] {
 	const indices: number[] = [];
 	for (const [ruleIndex, rule] of [...sheet.rules].entries()) {
-		if (
-			rule.cssText.includes(pluginID) &&
-			rule.cssText.includes("flex-basis")
-		) {
+		if (ruleMatches(rule.cssText, addonID)) {
 			indices[indices.length] = ruleIndex;
 		}
 	}
 	return indices;
 }
 
-function deleteBrokenStyleSheetRules(sheet: CSSStyleSheet, pluginID: string) {
-	const indices = getSheetFlexBasisRules(sheet, pluginID);
-	if (indices.length > 1) {
-		for (const index of indices.slice(1).toReversed()) {
-			sheet.deleteRule(index);
-		}
-	}
+function ruleMatches(ruleString: string, addonID: string) {
+	// need to unescape the addonID in the CSS string because it includes @ and . characters
+	return (
+		ruleString.replaceAll("\\", "").includes(addonID) &&
+		ruleString.includes("flex-basis")
+	);
 }
