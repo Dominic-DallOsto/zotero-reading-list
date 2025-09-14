@@ -1,6 +1,8 @@
+import { config } from "../../package.json";
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-const patchMarker = "ZoteroReadingListPatch";
-const patchMarkerOriginal = "ZoteroReadingListPatch_original";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+const patchMarker = `${config.addonInstance}Patch`;
+const patchMarkerOriginal = `${patchMarker}_original`;
 
 export function patch(
 	methodObject: any,
@@ -39,7 +41,6 @@ export function unpatch(methodObject: any, methodName: string) {
 			`${methodObject}.${methodName} isn't already patched by ${patchMarker} so can't be unpatched`,
 		);
 	} else {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		methodObject[methodName] =
 			methodObject[methodName][patchMarkerOriginal];
 		delete methodObject[methodName][patchMarker];
