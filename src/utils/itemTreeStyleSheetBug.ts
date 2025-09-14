@@ -6,6 +6,10 @@ import { patch as $patch$, unpatch as $unpatch$ } from "./patcher";
 // so we stop any duplicate rules being added
 
 export async function fixStyleSheetBug(addonID: string) {
+	if (addonID.includes("@")) {
+		// Zotero 7 drops the @ symbol so remove it
+		addonID = addonID.slice(0, addonID.indexOf("@"));
+	}
 	// make sure we have the style sheet where the buggy rules get added
 	await waitUntilAsync(
 		() => findStyleSheetIndex(addonID) != -1,
@@ -66,9 +70,5 @@ function getSheetAddonFlexBasisRules(
 }
 
 function ruleMatches(ruleString: string, addonID: string) {
-	// need to unescape the addonID in the CSS string because it includes @ and . characters
-	return (
-		ruleString.replaceAll("\\", "").includes(addonID) &&
-		ruleString.includes("flex-basis")
-	);
+	return ruleString.includes(addonID) && ruleString.includes("flex-basis");
 }
