@@ -9,7 +9,7 @@
 		"addonInstance": "ZoteroReadingList",
 		"prefsPrefix": "extensions.zotero.zotero-reading-list",
 		"releasePage": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases",
-		"updateJSON": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/latest/download/update.json"
+		"updateJSON": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/download/release/update.json"
 	},
 	"main": "src/index.ts",
 	"scripts": {
