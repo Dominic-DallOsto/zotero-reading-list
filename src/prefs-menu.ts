@@ -417,6 +417,7 @@ function tagSynchronisationToggled(window: Window) {
 				getString("enable-tag-synchronisation-prompt"),
 			)
 		) {
+			// @ts-ignore - Plugin instance is not typed
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			void Zotero[
 				config.addonInstance
