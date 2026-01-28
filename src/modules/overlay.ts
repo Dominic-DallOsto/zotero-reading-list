@@ -891,7 +891,6 @@ export default class ZoteroReadingList {
 		progress.setProgress(0);
 		progressWindow.show();
 		try {
-			 
 			await Zotero.DB.executeTransaction(() => {
 				for (const item of allItems) {
 					const readStatusTags = this.getItemReadStatusTags(item);
@@ -939,7 +938,7 @@ export default class ZoteroReadingList {
 		try {
 			progress.setProgress(0);
 			progressWindow.show();
-			 
+
 			await Zotero.DB.executeTransaction(() => {
 				for (const item of allItems) {
 					const itemReadStatus = this.getItemReadStatus(item);
