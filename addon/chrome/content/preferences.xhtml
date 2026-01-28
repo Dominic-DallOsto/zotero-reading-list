@@ -109,6 +109,28 @@
 			<menupopup> </menupopup>
 		</menulist>
 	</groupbox>
+
+	<!-- Automatic Tagging -->
+	<groupbox>
+		<label>
+			<html:h2 data-l10n-id="pref-tag-synchronisation-title"></html:h2>
+		</label>
+		<checkbox id="zotero-prefpane-__addonRef__-tag-synchronisation"
+			preference="extensions.zotero.__addonRef__.tag-synchronisation" data-l10n-id="pref-tag-synchronisation"
+			onclick="Zotero.__addonInstance__.prefsMenu.tagSynchronisationToggled(window)" />
+		<radiogroup preference="extensions.zotero.__addonRef__.tag-synchronisation-format">
+			<radio value="0" data-l10n-id="pref-tag-synchronisation-format-emoji" />
+			<radio value="1" data-l10n-id="pref-tag-synchronisation-format-noemoji" />
+		</radiogroup>
+		<hbox>
+			<html:button id="tags-to-readstatus"
+				onclick="Zotero.__addonInstance__.data.zoteroReadingListOverlay.updateAllItemsReadStatusesToMatchTags()"
+				data-l10n-id="pref-tag-synchronisation-button-tags-to-readstatus" />
+			<html:button id="readstatus-to-tags"
+				onclick="Zotero.__addonInstance__.data.zoteroReadingListOverlay.updateAllItemsTagsToMatchReadStatuses()"
+				data-l10n-id="pref-tag-synchronisation-button-readstatus-to-tags" />
+		</hbox>
+	</groupbox>
 </vbox>
 <vbox class="main-section">
 	<html:label data-l10n-id="pref-help"
