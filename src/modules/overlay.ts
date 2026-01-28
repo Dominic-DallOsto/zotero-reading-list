@@ -705,7 +705,7 @@ export default class ZoteroReadingList {
 		progress.setProgress(0);
 		progressWindow.show();
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			 
 			await Zotero.DB.executeTransaction(() => {
 				for (const item of allItems) {
 					const readStatusTags = this.getItemReadStatusTags(item);
@@ -753,7 +753,7 @@ export default class ZoteroReadingList {
 		try {
 			progress.setProgress(0);
 			progressWindow.show();
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+			 
 			await Zotero.DB.executeTransaction(() => {
 				for (const item of allItems) {
 					const itemReadStatus = this.getItemReadStatus(item);
