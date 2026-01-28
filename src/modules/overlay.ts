@@ -619,9 +619,7 @@ export default class ZoteroReadingList {
 		save: boolean = true,
 	) {
 		this.clearItemReadStatusTags(item);
-		item.setTags([
-			{ tag: this.formatTag(statusName), type: TAG_TYPE_AUTOMATIC },
-		]);
+		item.addTag(this.formatTag(statusName), TAG_TYPE_AUTOMATIC);
 		if (save) {
 			void item.saveTx();
 		}
