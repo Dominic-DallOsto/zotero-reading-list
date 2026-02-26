@@ -47,5 +47,7 @@ Under Edit -> Settings -> Reading List you can configure the following options
 | Custom Read Statuses and Icons[^1]                             | Choose custom Read Status names and icons. Keyboard shortcuts will work up to Alt+9. Note: if you delete a read status, it will remain assigned to any items - you'll need to delete / change their statuses manually. |
 | Automatically Change Status When Opening Item's Attachment[^1] | If enabled, you can choose a custom mapping for how Read Statuses are updated when you open an item's PDF and start reading it (eg. New -> In Progress).                                                               |
 | Automatically Label New Items[^1]                              | When adding new items to your Zotero library, do you want them to automatically be labelled with a particular read status?                                                                                             |
+| Tag and Read Status Synchronisation[^1]                        | If enabled, matching tags will automatically be applied to items when you change their read status, so you can also filter by and change item read statuses with the corresponding tags when using the Zotero app      |
+| Tag and Read Status Synchronisation Format[^1]                 | Whether to show read status emojis in their corresponding tags. This causes an emoji with the read status to appear before the item's title                                                                            |
 
 [^1]: Only supported in the Zotero 7 version of the extension

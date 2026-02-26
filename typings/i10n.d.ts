@@ -3,9 +3,12 @@
 /* eslint-disable */
 // @ts-nocheck
 export type FluentMessageId =
+  | 'addon-title'
   | 'autolabelnewitems-disabled'
   | 'duplicate-status-names-description'
   | 'duplicate-status-names-title'
+  | 'enable-tag-synchronisation-prompt'
+  | 'enable-tag-synchronisation-title'
   | 'invalid-status-names-description'
   | 'invalid-status-names-title'
   | 'menupopup-label'
@@ -34,12 +37,24 @@ export type FluentMessageId =
   | 'pref-statuslabeltable-header-statusicon'
   | 'pref-statuslabeltable-header-statusname'
   | 'pref-statuslabeltable-title'
+  | 'pref-tag-synchronisation'
+  | 'pref-tag-synchronisation-button-readstatus-to-tags'
+  | 'pref-tag-synchronisation-button-tags-to-readstatus'
+  | 'pref-tag-synchronisation-format-emoji'
+  | 'pref-tag-synchronisation-format-noemoji'
+  | 'pref-tag-synchronisation-title'
   | 'pref-title'
   | 'prefs-title'
   | 'read-status'
+  | 'readstatus-to-tags-message-done'
+  | 'readstatus-to-tags-message-error'
+  | 'readstatus-to-tags-message-progress'
   | 'status-in_progress'
   | 'status-new'
   | 'status-none'
   | 'status-not_reading'
   | 'status-read'
-  | 'status-to_read';
+  | 'status-to_read'
+  | 'tags-to-readstatus-message-done'
+  | 'tags-to-readstatus-message-error'
+  | 'tags-to-readstatus-message-progress';
