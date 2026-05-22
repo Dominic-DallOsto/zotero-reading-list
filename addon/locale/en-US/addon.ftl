@@ -13,4 +13,9 @@ duplicate-status-names-description = Two or more custom reading status names are
 invalid-status-names-title = Custom Reading Statuses Contains Invalid Characters
 invalid-status-names-description = Custom reading statuses and icons cannot contain the characters : ; or |. Please remove these characters.
 
+duplicate-custom-columns-title = Duplicate Custom Column Names
+duplicate-custom-columns-description = Two or more custom column names are the same. Please ensure each custom column name is unique.
+invalid-custom-columns-title = Incomplete Custom Columns
+invalid-custom-columns-description = Each custom column needs a name and at least one value. Empty rows are ignored.
+
 autolabelnewitems-disabled = Disabled

@@ -18,6 +18,12 @@ import {
 const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
+const ITEM_TREE_DATA_KEY_PREFIX = config.addonID
+	.replaceAll("-", "_")
+	.replaceAll("@", "_at_")
+	.replaceAll(".", "_");
+const CUSTOM_COLUMN_EXTRA_FIELD_PREFIX = `${config.addonRef}_Custom_Column_`;
+const CUSTOM_COLUMN_MENU_ID_PREFIX = "zotero-reading-list-custom-column-";
 
 export const DEFAULT_STATUS_NAMES = [
 	"New",
@@ -43,6 +49,15 @@ export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
 	"status-change-on-open-item-list";
+export const CUSTOM_COLUMNS_PREF = "custom-columns";
+
+export type CustomColumnConfig = {
+	id: string;
+	name: string;
+	values: string[];
+};
+
+export const DEFAULT_CUSTOM_COLUMNS: CustomColumnConfig[] = [];
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
@@ -84,6 +99,43 @@ function clearSelectedItemsReadStatus() {
 	}
 }
 
+function getItemCustomColumnValue(item: Zotero.Item, columnId: string) {
+	const fieldName = getCustomColumnExtraFieldName(columnId);
+	const values = getItemExtraProperty(item, fieldName);
+	return values.length === 1 ? values[0] : "";
+}
+
+function setItemCustomColumnValue(
+	item: Zotero.Item,
+	columnId: string,
+	value: string,
+) {
+	setItemExtraProperty(item, getCustomColumnExtraFieldName(columnId), value);
+	void item.saveTx();
+}
+
+function setItemsCustomColumnValue(
+	items: Zotero.Item[],
+	columnId: string,
+	value: string,
+) {
+	for (const item of items) {
+		setItemCustomColumnValue(item, columnId, value);
+	}
+}
+
+function setSelectedItemsCustomColumnValue(columnId: string, value: string) {
+	setItemsCustomColumnValue(getSelectedItems(), columnId, value);
+}
+
+function clearSelectedItemsCustomColumnValue(columnId: string) {
+	const items = getSelectedItems();
+	for (const item of items) {
+		clearItemExtraProperty(item, getCustomColumnExtraFieldName(columnId));
+		void item.saveTx();
+	}
+}
+
 /**
  * Return selected regular items
  */
@@ -102,23 +154,73 @@ export function listToPrefString(stringList: string[], iconList: string[]) {
 	return stringList.join(";") + "|" + iconList.join(";");
 }
 
+export function parseCustomColumnsPref(
+	prefValue: string | undefined,
+): CustomColumnConfig[] {
+	if (!prefValue) {
+		return [...DEFAULT_CUSTOM_COLUMNS];
+	}
+	try {
+		const parsed = JSON.parse(prefValue) as CustomColumnConfig[];
+		if (!Array.isArray(parsed)) {
+			return [...DEFAULT_CUSTOM_COLUMNS];
+		}
+		return parsed
+			.filter(
+				(column) =>
+					typeof column.id === "string" &&
+					typeof column.name === "string" &&
+					Array.isArray(column.values),
+			)
+			.map((column) => ({
+				id: column.id.trim(),
+				name: column.name.trim(),
+				values: column.values
+					.filter((value) => typeof value === "string")
+					.map((value) => value.trim())
+					.filter((value) => value.length > 0),
+			}))
+			.filter(
+				(column) => column.id && column.name && column.values.length,
+			);
+	} catch (error) {
+		return [...DEFAULT_CUSTOM_COLUMNS];
+	}
+}
+
+export function serializeCustomColumnsPref(columns: CustomColumnConfig[]) {
+	return JSON.stringify(columns);
+}
+
+function getCustomColumnExtraFieldName(columnId: string) {
+	return `${CUSTOM_COLUMN_EXTRA_FIELD_PREFIX}${columnId}`;
+}
+
 export default class ZoteroReadingList {
 	itemAddedListenerID?: string;
 	fileOpenedListenerID?: string;
 	itemTreeReadStatusColumnId?: string | false;
+	itemTreeCustomColumnIds?: Array<string | false>;
+	customColumnMenuIds?: string[];
 	preferenceUpdateObservers?: symbol[];
 	statusNames: string[];
 	statusIcons: string[];
+	customColumns: CustomColumnConfig[];
 
 	constructor() {
 		this.initialiseDefaultPreferences();
 		[this.statusNames, this.statusIcons] = prefStringToList(
 			getPref(STATUS_NAME_AND_ICON_LIST_PREF)! as string,
 		);
+		this.customColumns = parseCustomColumnsPref(
+			getPref(CUSTOM_COLUMNS_PREF) as string,
+		);
 
 		this.addReadStatusColumn();
+		this.addCustomColumns();
 		this.addPreferencesMenu();
 		this.addRightClickMenuPopup();
+		this.addCustomColumnMenus();
 
 		if (getPref(ENABLE_KEYBOARD_SHORTCUTS_PREF)) {
 			this.addKeyboardShortcutListener();
@@ -136,8 +238,10 @@ export default class ZoteroReadingList {
 
 	public unload() {
 		this.removeReadStatusColumn();
+		this.removeCustomColumns();
 		this.removePreferenceMenu();
 		this.removeRightClickMenu();
+		this.removeCustomColumnMenus();
 		this.removeKeyboardShortcutListener();
 		this.removeNewItemLabeller();
 		this.removeFileOpenedListener();
@@ -179,6 +283,10 @@ export default class ZoteroReadingList {
 				DEFAULT_STATUS_CHANGE_FROM,
 				DEFAULT_STATUS_CHANGE_TO,
 			),
+		);
+		initialiseDefaultPref(
+			CUSTOM_COLUMNS_PREF,
+			serializeCustomColumnsPref(DEFAULT_CUSTOM_COLUMNS),
 		);
 		// for migrating from old label new items pref (true or false) to new format pref (disabled or choose read status to use)
 		// true -> automatically label as first read status
@@ -273,6 +381,17 @@ export default class ZoteroReadingList {
 				},
 				true,
 			),
+			Zotero.Prefs.registerObserver(
+				getPrefGlobalName(CUSTOM_COLUMNS_PREF),
+				(value: string) => {
+					this.customColumns = parseCustomColumnsPref(value);
+					this.removeCustomColumnMenus();
+					this.removeCustomColumns();
+					this.addCustomColumns();
+					this.addCustomColumnMenus();
+				},
+				true,
+			),
 		];
 	}
 
@@ -291,7 +410,7 @@ export default class ZoteroReadingList {
 			this.formatStatusName(statusName);
 		this.itemTreeReadStatusColumnId = Zotero.ItemTreeManager.registerColumn(
 			{
-				dataKey: `${config.addonID.replaceAll("-", "_").replaceAll("@", "_at_").replaceAll(".", "_")}_${READ_STATUS_COLUMN_ID}`,
+				dataKey: `${ITEM_TREE_DATA_KEY_PREFIX}_${READ_STATUS_COLUMN_ID}`,
 				label: getString("read-status"),
 				// If we just want to show the icon, overwrite the label with htmlLabel (#40)
 				htmlLabel: getPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON)
@@ -363,6 +482,54 @@ export default class ZoteroReadingList {
 		}
 	}
 
+	addCustomColumns() {
+		this.itemTreeCustomColumnIds = this.customColumns.map((column) =>
+			Zotero.ItemTreeManager.registerColumn({
+				dataKey: `${ITEM_TREE_DATA_KEY_PREFIX}_custom_${column.id}`,
+				label: column.name,
+				pluginID: "", //config.addonID,
+				dataProvider: (item: Zotero.Item, dataKey: string) => {
+					return item.isRegularItem()
+						? getItemCustomColumnValue(item, column.id)
+						: "";
+				},
+				renderCell: function (
+					index: number,
+					data: string,
+					column: { className: string },
+				) {
+					const text = document.createElementNS(
+						"http://www.w3.org/1999/xhtml",
+						"span",
+					);
+					text.className = "cell-text";
+					text.innerText = data;
+
+					const cell = document.createElementNS(
+						"http://www.w3.org/1999/xhtml",
+						"span",
+					);
+					cell.className = `cell ${column.className}`;
+					cell.append(text);
+
+					return cell;
+				},
+				zoteroPersist: ["width", "hidden", "sortDirection"],
+			}),
+		);
+	}
+
+	removeCustomColumns() {
+		if (this.itemTreeCustomColumnIds) {
+			for (const columnId of this.itemTreeCustomColumnIds) {
+				if (columnId) {
+					Zotero.ItemTreeManager.unregisterColumn(columnId);
+				}
+			}
+			this.itemTreeCustomColumnIds = undefined;
+		}
+	}
+
 	addPreferencesMenu() {
 		const prefOptions = {
 			pluginID: config.addonID,
@@ -408,6 +575,49 @@ export default class ZoteroReadingList {
 
 	removeRightClickMenu() {
 		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu");
+	}
+
+	addCustomColumnMenus() {
+		this.customColumnMenuIds = [];
+		for (const column of this.customColumns) {
+			const menuId = `${CUSTOM_COLUMN_MENU_ID_PREFIX}${column.id}`;
+			const menuItems: MenuitemOptions[] = [
+				{
+					tag: "menuitem",
+					label: getString("status-none"),
+					commandListener: (event) =>
+						void clearSelectedItemsCustomColumnValue(column.id),
+				} as MenuitemOptions,
+			].concat(
+				column.values.map((value) => {
+					return {
+						tag: "menuitem",
+						label: value,
+						commandListener: (event) =>
+							setSelectedItemsCustomColumnValue(column.id, value),
+					};
+				}),
+			);
+			ztoolkit.Menu.register("item", {
+				id: menuId,
+				tag: "menu",
+				label: column.name,
+				children: menuItems,
+				getVisibility: (element, event) => {
+					return getSelectedItems().length > 0;
+				},
+			});
+			this.customColumnMenuIds.push(menuId);
+		}
+	}
+
+	removeCustomColumnMenus() {
+		if (this.customColumnMenuIds) {
+			for (const menuId of this.customColumnMenuIds) {
+				ztoolkit.Menu.unregister(menuId);
+			}
+			this.customColumnMenuIds = undefined;
+		}
 	}
 
 	addNewItemLabeller() {
@@ -543,7 +753,15 @@ export default class ZoteroReadingList {
 			?.setAttribute("disabled", "false");
 	}
 
+	getCustomColumnExtraFieldNames() {
+		return this.customColumns.map((column) =>
+			getCustomColumnExtraFieldName(column.id),
+		);
+	}
+
 	removeReadStatusFromExports() {
+		const getCustomColumnExtraFieldNames = () =>
+			this.getCustomColumnExtraFieldNames();
 		// need to specify that `this` is an Object (ie. it's Zotero.Utilities.Internal) for TS to be happy
 		$patch$(
 			Zotero.Utilities.Internal,
@@ -570,6 +788,12 @@ export default class ZoteroReadingList {
 							extraText,
 							READ_DATE_EXTRA_FIELD,
 						);
+						for (const fieldName of getCustomColumnExtraFieldNames()) {
+							extraText = removeFieldValueFromExtraData(
+								extraText,
+								fieldName,
+							);
+						}
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 						serializedItem.extra = extraText;
 					}

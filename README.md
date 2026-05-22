@@ -6,6 +6,7 @@ An extension for Zotero that allows setting the read status of items.
 
 - default read statuses are: `⭐ New`, `📙 To Read`, `📖 In Progress`, `📗 Read`, or `📕 Not Reading`
 - custom read statuses are also supported
+- custom item columns with predefined values are also supported
 - newly added items can be automatically labelled
 - an item's read status can be automatically updated when opening its attached PDF
 
@@ -45,6 +46,7 @@ Under Edit -> Settings -> Reading List you can configure the following options
 | Read Status Column Format[^1]                                  | Whether to shown icons along with the status of whether you've read items in the "Read Status" column, just the text, or just the icons.                                                                               |
 | Use Icon as Item Tree Header[^1]                               | Show the extension icon instead of "Read Status" as the reading status column header.                                                                                                                                  |
 | Custom Read Statuses and Icons[^1]                             | Choose custom Read Status names and icons. Keyboard shortcuts will work up to Alt+9. Note: if you delete a read status, it will remain assigned to any items - you'll need to delete / change their statuses manually. |
+| Custom Columns[^1]                                             | Define additional item list columns with your own labels and predefined values. Values can be changed from the item context menu.                                                                                      |
 | Automatically Change Status When Opening Item's Attachment[^1] | If enabled, you can choose a custom mapping for how Read Statuses are updated when you open an item's PDF and start reading it (eg. New -> In Progress).                                                               |
 | Automatically Label New Items[^1]                              | When adding new items to your Zotero library, do you want them to automatically be labelled with a particular read status?                                                                                             |
 

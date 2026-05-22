@@ -11,6 +11,11 @@ import {
 	LABEL_NEW_ITEMS_PREF_DISABLED,
 	prefStringToList,
 	listToPrefString,
+	CUSTOM_COLUMNS_PREF,
+	DEFAULT_CUSTOM_COLUMNS,
+	parseCustomColumnsPref,
+	serializeCustomColumnsPref,
+	type CustomColumnConfig,
 } from "./modules/overlay";
 import { getPref, setPref } from "./utils/prefs";
 import { getString } from "./utils/locale";
@@ -21,9 +26,12 @@ const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
 const OPEN_ITEM_CHECKBOX =
 	"zotero-prefpane-zotero-reading-list-label-items-when-opening-file";
 const LABEL_NEW_ITEMS_MENU_LIST = "automatically-label-new-items-menulist";
+const CUSTOM_COLUMNS_TABLE_BODY = "custom-columns-table-body";
+const CUSTOM_COLUMNS_VALUES_SEPARATOR = ";";
 
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
+	setTableCustomColumns(window);
 	setTableOpenItem(window);
 	fillAutomaticallyLabelNewItemsMenuList(window);
 }
@@ -41,6 +49,15 @@ function setTableStatusNames(window: Window) {
 	);
 	for (const row of createTableRowsStatusNames(window)) {
 		tableBodyStatusNames?.append(row);
+	}
+}
+
+function setTableCustomColumns(window: Window) {
+	const tableBodyCustomColumns = window.document.getElementById(
+		CUSTOM_COLUMNS_TABLE_BODY,
+	);
+	for (const row of createTableRowsCustomColumns(window)) {
+		tableBodyCustomColumns?.append(row);
 	}
 }
 
@@ -73,6 +90,16 @@ function addTableRowStatusNames(window: Window) {
 		?.append(createTableRowStatusNames(window, "", ""));
 }
 
+function addTableRowCustomColumns(window: Window) {
+	window.document.getElementById(CUSTOM_COLUMNS_TABLE_BODY)?.append(
+		createTableRowCustomColumns(window, {
+			id: "",
+			name: "",
+			values: [],
+		}),
+	);
+}
+
 function addTableRowOpenItem(window: Window) {
 	window.document
 		.getElementById(OPEN_ITEM_TABLE_BODY)
@@ -95,6 +122,15 @@ function resetTableStatusNames(window: Window) {
 	resetPrefsMenu(window);
 }
 
+function resetTableCustomColumns(window: Window) {
+	setPref(
+		CUSTOM_COLUMNS_PREF,
+		serializeCustomColumnsPref(DEFAULT_CUSTOM_COLUMNS),
+	);
+	clearTableCustomColumns(window);
+	setTableCustomColumns(window);
+}
+
 function resetTableOpenItem(window: Window) {
 	setPref(
 		STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF,
@@ -111,6 +147,15 @@ function clearTableOpenItem(window: Window) {
 	(Array.from(tableRows ?? []) as HTMLTableRowElement[])
 		.filter((row) => !row.hidden)
 		.map((row) => row.remove());
+}
+
+function clearTableCustomColumns(window: Window) {
+	const tableRows = window.document.getElementById(
+		CUSTOM_COLUMNS_TABLE_BODY,
+	)?.children;
+	Array.from(tableRows ?? []).map((row) => {
+		row.remove();
+	});
 }
 
 function getTableStatusRows(window: Window) {
@@ -229,6 +274,140 @@ function saveTableStatusNames(window: Window) {
 	resetPrefsMenu(window);
 }
 
+function parseCustomColumnValues(values: string) {
+	return values
+		.split(CUSTOM_COLUMNS_VALUES_SEPARATOR)
+		.map((value) => value.trim())
+		.filter((value) => value.length > 0);
+}
+
+function getTableCustomColumns(window: Window) {
+	const tableRows = window.document.getElementById(
+		CUSTOM_COLUMNS_TABLE_BODY,
+	)?.children;
+	const columns: CustomColumnConfig[] = [];
+	const names: string[] = [];
+	let hasPartialRows = false;
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[0].firstChild as HTMLInputElement;
+		const valuesInput = row.children[1].firstChild as HTMLInputElement;
+		const name = nameInput.value.trim();
+		const values = parseCustomColumnValues(valuesInput.value);
+		if (!name && values.length === 0) {
+			continue;
+		}
+		if (!name || values.length === 0) {
+			hasPartialRows = true;
+		}
+		names.push(name);
+		columns.push({
+			id: (row as HTMLTableRowElement).dataset.columnId ?? "",
+			name,
+			values,
+		});
+	}
+	return { columns, names, hasPartialRows };
+}
+
+function setDuplicateCustomColumnRowsAsInvalid(
+	window: Window,
+	duplicates: Set<string>,
+) {
+	const tableRows = window.document.getElementById(
+		CUSTOM_COLUMNS_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[0].firstChild as HTMLInputElement;
+		if (duplicates.has(nameInput.value.trim())) {
+			nameInput.setCustomValidity("duplicate");
+		}
+	}
+}
+
+function validateCustomColumnsTable(window: Window) {
+	const tableRows = window.document.getElementById(
+		CUSTOM_COLUMNS_TABLE_BODY,
+	)?.children;
+	const names: string[] = [];
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[0].firstChild as HTMLInputElement;
+		const valuesInput = row.children[1].firstChild as HTMLInputElement;
+		const name = nameInput.value.trim();
+		const values = parseCustomColumnValues(valuesInput.value);
+		if (!name && values.length === 0) {
+			nameInput.setCustomValidity("");
+			valuesInput.setCustomValidity("");
+			continue;
+		}
+		nameInput.setCustomValidity(name ? "" : "missing-name");
+		valuesInput.setCustomValidity(values.length ? "" : "missing-values");
+		if (name) {
+			names.push(name);
+		}
+	}
+	const unique = new Set(names);
+	if (unique.size != names.length) {
+		const duplicates = new Set(
+			names.filter((item) => {
+				if (unique.has(item)) {
+					unique.delete(item);
+				} else {
+					return item;
+				}
+			}),
+		);
+		setDuplicateCustomColumnRowsAsInvalid(window, duplicates);
+	}
+}
+
+function customColumnsTableContainsInvalidInput(window: Window) {
+	const tableRows = window.document.getElementById(
+		CUSTOM_COLUMNS_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const nameInput = row.children[0].firstChild as HTMLInputElement;
+		const valuesInput = row.children[1].firstChild as HTMLInputElement;
+		if (!nameInput.checkValidity() || !valuesInput.checkValidity()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function generateCustomColumnId() {
+	return `column-${Date.now().toString(36)}-${Math.random()
+		.toString(36)
+		.slice(2, 8)}`;
+}
+
+function saveTableCustomColumns(window: Window) {
+	validateCustomColumnsTable(window);
+	const { columns, names, hasPartialRows } = getTableCustomColumns(window);
+	if (hasPartialRows || customColumnsTableContainsInvalidInput(window)) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("invalid-custom-columns-title"),
+			getString("invalid-custom-columns-description"),
+		);
+		return;
+	}
+	if (new Set(names).size != names.length) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("duplicate-custom-columns-title"),
+			getString("duplicate-custom-columns-description"),
+		);
+		return;
+	}
+	const normalizedColumns = columns.map((column) => ({
+		...column,
+		id: column.id || generateCustomColumnId(),
+	}));
+	setPref(CUSTOM_COLUMNS_PREF, serializeCustomColumnsPref(normalizedColumns));
+	clearTableCustomColumns(window);
+	setTableCustomColumns(window);
+}
+
 function saveTableOpenItem(window: Window) {
 	const tableRows =
 		window.document.getElementById(OPEN_ITEM_TABLE_BODY)?.children;
@@ -281,6 +460,15 @@ function createTableRowsStatusNames(window: Window) {
 	);
 }
 
+function createTableRowsCustomColumns(window: Window) {
+	const customColumns = parseCustomColumnsPref(
+		getPref(CUSTOM_COLUMNS_PREF) as string,
+	);
+	return customColumns.map((column) =>
+		createTableRowCustomColumns(window, column),
+	);
+}
+
 function createTableRowsOpenItem(window: Window) {
 	const [statusFrom, statusTo] = prefStringToList(
 		getPref(STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF) as string,
@@ -329,6 +517,55 @@ function createTableRowStatusNames(window: Window, icon: string, name: string) {
 
 	row.append(iconCell);
 	row.append(nameCell);
+	row.append(settings);
+	return row;
+}
+
+function createTableRowCustomColumns(
+	window: Window,
+	column: CustomColumnConfig,
+) {
+	const row = createElement("html:tr");
+	row.dataset.columnId = column.id;
+
+	const nameCell = createElement("html:td");
+	const nameInput = createElement("html:input") as HTMLInputElement;
+	nameInput.type = "text";
+	nameInput.value = column.name;
+	nameInput.oninput = () => validateCustomColumnsTable(window);
+	nameCell.append(nameInput);
+
+	const valuesCell = createElement("html:td");
+	const valuesInput = createElement("html:input") as HTMLInputElement;
+	valuesInput.type = "text";
+	valuesInput.value = column.values.join(
+		`${CUSTOM_COLUMNS_VALUES_SEPARATOR} `,
+	);
+	valuesInput.oninput = () => validateCustomColumnsTable(window);
+	valuesCell.append(valuesInput);
+
+	const settings = createElement("html:td");
+	const upButton = createElement("html:button");
+	const downButton = createElement("html:button");
+	const binButton = createElement("html:button");
+	upButton.textContent = "⬆";
+	downButton.textContent = "⬇";
+	binButton.textContent = "🗑";
+	upButton.onclick = () => {
+		moveElementHigher(row);
+	};
+	downButton.onclick = () => {
+		moveElementLower(row);
+	};
+	binButton.onclick = () => {
+		row.remove();
+	};
+	settings.append(upButton);
+	settings.append(downButton);
+	settings.append(binButton);
+
+	row.append(nameCell);
+	row.append(valuesCell);
 	row.append(settings);
 	return row;
 }
@@ -406,6 +643,9 @@ export default {
 	addTableRowStatusNames,
 	resetTableStatusNames,
 	saveTableStatusNames,
+	addTableRowCustomColumns,
+	resetTableCustomColumns,
+	saveTableCustomColumns,
 	addTableRowOpenItem,
 	resetTableOpenItem,
 	saveTableOpenItem,

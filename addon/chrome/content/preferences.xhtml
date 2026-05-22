@@ -53,6 +53,34 @@
 		</html:table>
 	</groupbox>
 
+	<!-- Custom columns -->
+	<groupbox>
+		<label>
+			<html:h2 data-l10n-id="pref-customcolumns-title"></html:h2>
+		</label>
+		<html:table>
+			<html:thead>
+				<html:tr>
+					<html:th data-l10n-id="pref-customcolumns-header-name"></html:th>
+					<html:th data-l10n-id="pref-customcolumns-header-values"></html:th>
+					<html:th data-l10n-id="pref-customcolumns-header-reorder"></html:th>
+				</html:tr>
+			</html:thead>
+			<html:tbody id="custom-columns-table-body"> </html:tbody>
+			<html:button id="custom-columns-add"
+				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowCustomColumns(window)"
+				data-l10n-id="pref-customcolumns-button-add" />
+			<br />
+			<html:button id="custom-columns-save"
+				onclick="Zotero.__addonInstance__.prefsMenu.saveTableCustomColumns(window)"
+				data-l10n-id="pref-customcolumns-button-save" />
+			<html:button id="custom-columns-reset"
+				onclick="Zotero.__addonInstance__.prefsMenu.resetTableCustomColumns(window)"
+				data-l10n-id="pref-customcolumns-button-reset" />
+		</html:table>
+		<html:label data-l10n-id="pref-customcolumns-help"></html:label>
+	</groupbox>
+
 	<!-- Auto change statuses when opening items -->
 	<groupbox>
 		<label>

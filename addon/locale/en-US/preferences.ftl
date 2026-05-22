@@ -26,6 +26,15 @@ pref-statuslabeltable-button-add = Add New Status
 pref-statuslabeltable-button-save = Save
 pref-statuslabeltable-button-reset = Reset to Default
 
+pref-customcolumns-title = Custom Columns
+pref-customcolumns-header-name = Column Name
+pref-customcolumns-header-values = Allowed Values
+pref-customcolumns-header-reorder = Reorder
+pref-customcolumns-button-add = Add Column
+pref-customcolumns-button-save = Save
+pref-customcolumns-button-reset = Reset to Default
+pref-customcolumns-help = Separate values with semicolons (e.g., Draft; Reviewing; Done)
+
 pref-openitemtable-title = Custom Status Changes When Opening Item
 pref-openitemtable-header-statusfrom = Status From
 pref-openitemtable-header-statusto = Status To
