@@ -17,14 +17,14 @@ import {
 	serializeCustomColumnsPref,
 	type CustomColumnConfig,
 } from "./modules/overlay";
+import { config } from "../package.json";
 import { getPref, setPref } from "./utils/prefs";
 import { getString } from "./utils/locale";
 
 const STATUS_NAMES_TABLE_BODY = "statusnames-table-body";
 const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
 const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
-const OPEN_ITEM_CHECKBOX =
-	"zotero-prefpane-zotero-reading-list-label-items-when-opening-file";
+const OPEN_ITEM_CHECKBOX = `zotero-prefpane-${config.addonRef}-label-items-when-opening-file`;
 const LABEL_NEW_ITEMS_MENU_LIST = "automatically-label-new-items-menulist";
 const CUSTOM_COLUMNS_TABLE_BODY = "custom-columns-table-body";
 const CUSTOM_COLUMNS_VALUES_SEPARATOR = ";";

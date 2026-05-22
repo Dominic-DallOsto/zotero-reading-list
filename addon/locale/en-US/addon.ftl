@@ -6,7 +6,7 @@ status-to_read = To Read
 status-in_progress = In Progress
 status-read = Read
 status-not_reading = Not Reading
-prefs-title = Reading List
+prefs-title = Zotero Custom Fields
 
 duplicate-status-names-title = Duplicate Custom Reading Statuses
 duplicate-status-names-description = Two or more custom reading status names are the same. This isn't supported. Please ensure all of your custom reading status names are unique.

@@ -1,15 +1,15 @@
 {
-	"name": "zotero-reading-list",
+	"name": "zotero-custom-fields",
 	"version": "1.5.18",
 	"description": "Keep track of whether you've read items in Zotero",
 	"config": {
-		"addonName": "Zotero Reading List",
-		"addonID": "reading-list@hotmail.com",
-		"addonRef": "zotero-reading-list",
-		"addonInstance": "ZoteroReadingList",
-		"prefsPrefix": "extensions.zotero.zotero-reading-list",
-		"releasePage": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases",
-		"updateJSON": "https://github.com/Dominic-DallOsto/zotero-reading-list/releases/download/release/update.json"
+		"addonName": "Zotero Custom Fields",
+		"addonID": "zotero-custom-fields@github.com",
+		"addonRef": "zotero-custom-fields",
+		"addonInstance": "ZoteroCustomFields",
+		"prefsPrefix": "extensions.zotero.zotero-custom-fields",
+		"releasePage": "https://github.com/parsaM110/zotero-reading-list/releases",
+		"updateJSON": "https://github.com/parsaM110/zotero-reading-list/releases/download/release/update.json"
 	},
 	"main": "src/index.ts",
 	"scripts": {
@@ -23,14 +23,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Dominic-DallOsto/zotero-reading-list.git"
+		"url": "git+https://github.com/parsaM110/zotero-reading-list.git"
 	},
 	"author": "Dominic Dall'Osto",
 	"license": "AGPL-3.0-or-later",
 	"bugs": {
-		"url": "https://github.com/Dominic-DallOsto/zotero-reading-list/issues"
+		"url": "https://github.com/parsaM110/zotero-reading-list/issues"
 	},
-	"homepage": "https://github.com/Dominic-DallOsto/zotero-reading-list",
+	"homepage": "https://github.com/parsaM110/zotero-reading-list",
 	"dependencies": {
 		"zotero-plugin-toolkit": "^5.0.1"
 	},

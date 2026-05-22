@@ -2,6 +2,8 @@ name: release
 
 on:
     push:
+    release:
+        types: [published]
 
 jobs:
     test:
@@ -37,8 +39,7 @@ jobs:
     release:
         runs-on: ubuntu-latest
         needs: test
-        # only trigger when tagged with a version
-        if: startsWith(github.event.ref, 'refs/tags/v')
+        if: github.event_name == 'release'
         steps:
             - name: checkout
               uses: actions/checkout@v4
@@ -67,12 +68,13 @@ jobs:
             - name: build
               run: npm run build
 
-            - name: release
-              run: |
-                  npm run release -- --no-increment --no-git --github.release --ci --VV
-                  sleep 1s
+            - name: upload release xpi
+              uses: softprops/action-gh-release@v2
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  tag_name: ${{ github.event.release.tag_name }}
+                  files: build/*.xpi
 
             - name: release update.json
               uses: softprops/action-gh-release@v2

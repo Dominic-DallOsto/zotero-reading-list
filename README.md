@@ -1,6 +1,6 @@
-# Zotero Reading List
+# Zotero Custom Fields
 
-![downloads](<https://img.shields.io/github/downloads/dominic-dallosto/zotero-reading-list/latest/zotero-reading-list.xpi?style=flat-square&label=Downloads%20(latest%20version)>)
+![downloads](<https://img.shields.io/github/downloads/parsaM110/zotero-reading-list/latest/zotero-custom-fields.xpi?style=flat-square&label=Downloads%20(latest%20version)>)
 
 An extension for Zotero that allows setting the read status of items.
 
@@ -38,7 +38,7 @@ You can also remove an item's read status through the right click menu or with t
 
 ## Options
 
-Under Edit -> Settings -> Reading List you can configure the following options
+Under Edit -> Settings -> Zotero Custom Fields you can configure the following options
 
 | Option                                                         | Description                                                                                                                                                                                                            |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -23,7 +23,8 @@ const ITEM_TREE_DATA_KEY_PREFIX = config.addonID
 	.replaceAll("@", "_at_")
 	.replaceAll(".", "_");
 const CUSTOM_COLUMN_EXTRA_FIELD_PREFIX = `${config.addonRef}_Custom_Column_`;
-const CUSTOM_COLUMN_MENU_ID_PREFIX = "zotero-reading-list-custom-column-";
+const CUSTOM_COLUMN_MENU_ID_PREFIX = `${config.addonRef}-custom-column-`;
+const RIGHT_CLICK_MENU_ID = `${config.addonRef}-right-click-item-menu`;
 
 export const DEFAULT_STATUS_NAMES = [
 	"New",
@@ -547,7 +548,7 @@ export default class ZoteroReadingList {
 
 	addRightClickMenuPopup() {
 		ztoolkit.Menu.register("item", {
-			id: "zotero-reading-list-right-click-item-menu",
+			id: RIGHT_CLICK_MENU_ID,
 			tag: "menu",
 			label: getString("menupopup-label"),
 			children: [
@@ -574,7 +575,7 @@ export default class ZoteroReadingList {
 	}
 
 	removeRightClickMenu() {
-		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu");
+		ztoolkit.Menu.unregister(RIGHT_CLICK_MENU_ID);
 	}
 
 	addCustomColumnMenus() {
@@ -647,7 +648,7 @@ export default class ZoteroReadingList {
 				},
 			},
 			["item"],
-			"zotero-reading-list",
+			config.addonRef,
 			1,
 		);
 	}
@@ -694,7 +695,7 @@ export default class ZoteroReadingList {
 				},
 			},
 			["file"],
-			"zotero-reading-list",
+			config.addonRef,
 			1,
 		);
 	}
