@@ -18,4 +18,8 @@ duplicate-custom-columns-description = Two or more custom column names are the s
 invalid-custom-columns-title = Incomplete Custom Columns
 invalid-custom-columns-description = Each custom column needs a name and at least one value. Empty rows are ignored.
 
+table-row-move-up = Move up
+table-row-move-down = Move down
+table-row-delete = Delete
+
 autolabelnewitems-disabled = Disabled

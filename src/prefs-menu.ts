@@ -374,10 +374,19 @@ function customColumnsTableContainsInvalidInput(window: Window) {
 	return false;
 }
 
-function generateCustomColumnId() {
-	return `column-${Date.now().toString(36)}-${Math.random()
-		.toString(36)
-		.slice(2, 8)}`;
+function generateCustomColumnId(existingIds: Set<string>) {
+	let columnId = "";
+	do {
+		const cryptoApi = globalThis.crypto;
+		columnId =
+			cryptoApi && typeof cryptoApi.randomUUID === "function"
+				? cryptoApi.randomUUID()
+				: `column-${Date.now().toString(36)}-${Math.random()
+						.toString(36)
+						.slice(2, 8)}`;
+	} while (existingIds.has(columnId));
+	existingIds.add(columnId);
+	return columnId;
 }
 
 function saveTableCustomColumns(window: Window) {
@@ -399,9 +408,12 @@ function saveTableCustomColumns(window: Window) {
 		);
 		return;
 	}
+	const existingIds = new Set(
+		columns.map((column) => column.id).filter((id) => id),
+	);
 	const normalizedColumns = columns.map((column) => ({
 		...column,
-		id: column.id || generateCustomColumnId(),
+		id: column.id || generateCustomColumnId(existingIds),
 	}));
 	setPref(CUSTOM_COLUMNS_PREF, serializeCustomColumnsPref(normalizedColumns));
 	clearTableCustomColumns(window);
@@ -502,6 +514,9 @@ function createTableRowStatusNames(window: Window, icon: string, name: string) {
 	upButton.textContent = "⬆";
 	downButton.textContent = "⬇";
 	binButton.textContent = "🗑";
+	upButton.setAttribute("aria-label", getString("table-row-move-up"));
+	downButton.setAttribute("aria-label", getString("table-row-move-down"));
+	binButton.setAttribute("aria-label", getString("table-row-delete"));
 	upButton.onclick = () => {
 		moveElementHigher(row);
 	};
@@ -551,6 +566,9 @@ function createTableRowCustomColumns(
 	upButton.textContent = "⬆";
 	downButton.textContent = "⬇";
 	binButton.textContent = "🗑";
+	upButton.setAttribute("aria-label", getString("table-row-move-up"));
+	downButton.setAttribute("aria-label", getString("table-row-move-down"));
+	binButton.setAttribute("aria-label", getString("table-row-delete"));
 	upButton.onclick = () => {
 		moveElementHigher(row);
 	};
@@ -599,6 +617,7 @@ function createTableRowOpenItem(
 	toMenuList.selectedIndex = statusNames.indexOf(statusTo);
 
 	if (row && deleteButton) {
+		deleteButton.setAttribute("aria-label", getString("table-row-delete"));
 		deleteButton.onclick = () => {
 			row.remove();
 		};

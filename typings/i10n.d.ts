@@ -54,4 +54,7 @@ export type FluentMessageId =
   | 'status-none'
   | 'status-not_reading'
   | 'status-read'
-  | 'status-to_read';
+  | 'status-to_read'
+  | 'table-row-delete'
+  | 'table-row-move-down'
+  | 'table-row-move-up';
