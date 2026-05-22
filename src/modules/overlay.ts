@@ -416,7 +416,7 @@ export default class ZoteroReadingList {
 				htmlLabel: getPref(READ_STATUS_FORMAT_HEADER_SHOW_ICON)
 					? `<span class="icon icon-css icon-16" style="background: url(chrome://${config.addonRef}/content/icons/favicon.png) content-box no-repeat center/contain;" />`
 					: undefined,
-				pluginID: config.addonID,
+				pluginID: "",
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
 					return item.isRegularItem() ? getItemReadStatus(item) : "";
 				},

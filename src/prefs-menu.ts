@@ -196,6 +196,19 @@ function setDuplicateTableRowsAsInvalid(
 	}
 }
 
+function findDuplicateValues(values: string[]) {
+	const unique = new Set<string>();
+	const duplicates = new Set<string>();
+	for (const value of values) {
+		if (unique.has(value)) {
+			duplicates.add(value);
+		} else {
+			unique.add(value);
+		}
+	}
+	return duplicates;
+}
+
 function checkAllTableRowsAreValid(window: Window) {
 	const tableRows = window.document.getElementById(
 		STATUS_NAMES_TABLE_BODY,
@@ -220,17 +233,8 @@ function validateTableRows(window: Window) {
 	checkAllTableRowsAreValid(window);
 	// now check for duplicate names
 	const { names } = getTableStatusRows(window);
-	const unique = new Set(names);
-	if (unique.size !== names.length) {
-		const duplicates = new Set(
-			names.filter((item) => {
-				if (unique.has(item)) {
-					unique.delete(item);
-				} else {
-					return item;
-				}
-			}),
-		);
+	const duplicates = findDuplicateValues(names);
+	if (duplicates.size) {
 		setDuplicateTableRowsAsInvalid(window, duplicates);
 	}
 }
@@ -254,7 +258,8 @@ function tableContainsInvalidInput(window: Window) {
 
 function saveTableStatusNames(window: Window) {
 	const { names, icons } = getTableStatusRows(window);
-	if (new Set(names).size != names.length) {
+	const duplicates = findDuplicateValues(names);
+	if (duplicates.size) {
 		Services.prompt.alert(
 			window as mozIDOMWindowProxy,
 			getString("duplicate-status-names-title"),
@@ -345,17 +350,8 @@ function validateCustomColumnsTable(window: Window) {
 			names.push(name);
 		}
 	}
-	const unique = new Set(names);
-	if (unique.size != names.length) {
-		const duplicates = new Set(
-			names.filter((item) => {
-				if (unique.has(item)) {
-					unique.delete(item);
-				} else {
-					return item;
-				}
-			}),
-		);
+	const duplicates = findDuplicateValues(names);
+	if (duplicates.size) {
 		setDuplicateCustomColumnRowsAsInvalid(window, duplicates);
 	}
 }
@@ -400,7 +396,8 @@ function saveTableCustomColumns(window: Window) {
 		);
 		return;
 	}
-	if (new Set(names).size !== names.length) {
+	const duplicateColumns = findDuplicateValues(names);
+	if (duplicateColumns.size) {
 		Services.prompt.alert(
 			window as mozIDOMWindowProxy,
 			getString("duplicate-custom-columns-title"),
@@ -449,7 +446,7 @@ function createElement(elementName: string) {
 }
 
 function moveElementHigher(element: HTMLElement) {
-	if (element != element.parentElement?.firstChild) {
+	if (element !== element.parentElement?.firstChild) {
 		element.parentElement?.insertBefore(element, element.previousSibling);
 	}
 }
