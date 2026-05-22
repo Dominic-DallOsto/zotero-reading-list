@@ -153,7 +153,7 @@ function clearTableCustomColumns(window: Window) {
 	const tableRows = window.document.getElementById(
 		CUSTOM_COLUMNS_TABLE_BODY,
 	)?.children;
-	Array.from(tableRows ?? []).map((row) => {
+	Array.from(tableRows ?? []).forEach((row) => {
 		row.remove();
 	});
 }
