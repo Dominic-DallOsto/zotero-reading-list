@@ -221,7 +221,7 @@ function validateTableRows(window: Window) {
 	// now check for duplicate names
 	const { names } = getTableStatusRows(window);
 	const unique = new Set(names);
-	if (unique.size != names.length) {
+	if (unique.size !== names.length) {
 		const duplicates = new Set(
 			names.filter((item) => {
 				if (unique.has(item)) {
@@ -375,9 +375,9 @@ function customColumnsTableContainsInvalidInput(window: Window) {
 }
 
 function generateCustomColumnId(existingIds: Set<string>) {
+	const cryptoApi = globalThis.crypto;
 	let columnId = "";
 	do {
-		const cryptoApi = globalThis.crypto;
 		columnId =
 			cryptoApi && typeof cryptoApi.randomUUID === "function"
 				? cryptoApi.randomUUID()
@@ -400,7 +400,7 @@ function saveTableCustomColumns(window: Window) {
 		);
 		return;
 	}
-	if (new Set(names).size != names.length) {
+	if (new Set(names).size !== names.length) {
 		Services.prompt.alert(
 			window as mozIDOMWindowProxy,
 			getString("duplicate-custom-columns-title"),
