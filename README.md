@@ -1,4 +1,4 @@
-# Zotero Custom Fields
+# zotero-custom-fields
 
 ![downloads](<https://img.shields.io/github/downloads/parsaM110/zotero-reading-list/latest/zotero-custom-fields.xpi?style=flat-square&label=Downloads%20(latest%20version)>)
 
@@ -38,7 +38,7 @@ You can also remove an item's read status through the right click menu or with t
 
 ## Options
 
-Under Edit -> Settings -> Zotero Custom Fields you can configure the following options
+Under Edit -> Settings -> zotero-custom-fields you can configure the following options
 
 | Option                                                         | Description                                                                                                                                                                                                            |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

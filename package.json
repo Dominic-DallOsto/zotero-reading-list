@@ -3,7 +3,7 @@
 	"version": "1.5.18",
 	"description": "Keep track of whether you've read items in Zotero",
 	"config": {
-		"addonName": "Zotero Custom Fields",
+		"addonName": "zotero-custom-fields",
 		"addonID": "zotero-custom-fields@github.com",
 		"addonRef": "zotero-custom-fields",
 		"addonInstance": "ZoteroCustomFields",

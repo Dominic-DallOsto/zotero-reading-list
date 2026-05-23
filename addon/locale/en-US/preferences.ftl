@@ -1,4 +1,4 @@
-pref-title = Zotero Custom Fields Settings
+pref-title = zotero-custom-fields Settings
 pref-enable-keyboard-shortcuts =
     .label = Enable keyboard shortcuts (Alt+0,1,2,3,4,5, ...). This disables Zotero's column sorting shortcuts!
 pref-label-new-items =
