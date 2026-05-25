@@ -20,7 +20,3 @@ table th {
 input:invalid {
 	color: rgb(255, 20, 20);
 }
-
-#automatically-label-new-items-menulist {
-	width: 300px;
-}

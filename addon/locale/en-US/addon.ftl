@@ -16,7 +16,19 @@ invalid-status-names-description = Custom reading statuses and icons cannot cont
 duplicate-custom-columns-title = Duplicate Custom Column Names
 duplicate-custom-columns-description = Two or more custom column names are the same. Please ensure each custom column name is unique.
 invalid-custom-columns-title = Incomplete Custom Columns
-invalid-custom-columns-description = Each custom column needs a name and at least one value. Empty rows are ignored.
+invalid-custom-columns-description = Each custom column needs a name. Empty rows are ignored.
+
+custom-column-values-title = Values for { $name }
+custom-column-values-header-value = Value
+custom-column-values-header-reorder = Reorder
+custom-column-values-button-add = Add Value
+custom-column-values-button-save = Save
+custom-column-values-button-reset = Reset
+
+duplicate-custom-column-values-title = Duplicate Custom Column Values
+duplicate-custom-column-values-description = Two or more values are the same. Please ensure each value is unique.
+invalid-custom-column-values-title = Incomplete Custom Column Values
+invalid-custom-column-values-description = Each value row needs a value. Empty rows are ignored.
 
 table-row-move-up = Move up
 table-row-move-down = Move down
