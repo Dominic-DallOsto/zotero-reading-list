@@ -45,7 +45,7 @@
 		"replace-in-file": "^8.3.0",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.38.0",
-		"zotero-plugin-scaffold": "^0.8.6",
+		"zotero-plugin-scaffold": "^0.8.8",
 		"zotero-types": "^4.1.2"
 	},
 	"prettier": {
