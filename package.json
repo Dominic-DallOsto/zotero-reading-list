@@ -1,6 +1,6 @@
 {
 	"name": "zotero-reading-list",
-	"version": "1.5.21",
+	"version": "1.5.22",
 	"description": "Keep track of whether you've read items in Zotero",
 	"config": {
 		"addonName": "Zotero Reading List",
