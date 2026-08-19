@@ -66,9 +66,7 @@ function setItemReadStatus(item: Zotero.Item, statusName: string) {
 }
 
 function setItemsReadStatus(items: Zotero.Item[], statusName: string) {
-	for (const item of items) {
-		setItemReadStatus(item, statusName);
-	}
+	items.forEach((item) => setItemReadStatus(item, statusName));
 }
 
 function setSelectedItemsReadStatus(statusName: string) {
@@ -77,11 +75,11 @@ function setSelectedItemsReadStatus(statusName: string) {
 
 function clearSelectedItemsReadStatus() {
 	const items = getSelectedItems();
-	for (const item of items) {
+	items.forEach((item) => {
 		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
 		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
 		void item.saveTx();
-	}
+	});
 }
 
 /**
