@@ -19,6 +19,8 @@ const READ_STATUS_COLUMN_ID = "readstatus";
 const READ_STATUS_EXTRA_FIELD = "Read_Status";
 const READ_DATE_EXTRA_FIELD = "Read_Status_Date";
 
+const TAG_TYPE_AUTOMATIC = 1;
+
 export const DEFAULT_STATUS_NAMES = [
 	"New",
 	"To Read",
@@ -51,6 +53,10 @@ export const MODIFIER_MASK_ALT = 1;
 export const MODIFIER_MASK_CTRL = 2;
 export const MODIFIER_MASK_SHIFT = 4;
 export const MODIFIER_MASK_META = 8;
+export const SET_READ_STATUS_TAGS_PREF = "set-read-status-tags";
+export const TAG_SYNCHRONISATION = "tag-synchronisation";
+export const TAG_SYNCHRONISATION_PREF = "tag-synchronisation";
+export const TAG_SYNCHRONISATION_FORMAT_PREF = "tag-synchronisation-format";
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
@@ -58,36 +64,9 @@ enum ReadStatusFormat {
 	ShowIcon = 2,
 }
 
-function getItemReadStatus(item: Zotero.Item) {
-	const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-	return statusField.length == 1 ? statusField[0] : "";
-}
-
-function setItemReadStatus(item: Zotero.Item, statusName: string) {
-	setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
-	setItemExtraProperty(
-		item,
-		READ_DATE_EXTRA_FIELD,
-		new Date(Date.now()).toISOString(),
-	);
-	void item.saveTx();
-}
-
-function setItemsReadStatus(items: Zotero.Item[], statusName: string) {
-	items.forEach((item) => setItemReadStatus(item, statusName));
-}
-
-function setSelectedItemsReadStatus(statusName: string) {
-	setItemsReadStatus(getSelectedItems(), statusName);
-}
-
-function clearSelectedItemsReadStatus() {
-	const items = getSelectedItems();
-	items.forEach((item) => {
-		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
-		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
-		void item.saveTx();
-	});
+enum TagSynchronisationFormat {
+	ShowEmoji = 0,
+	NoEmoji = 1,
 }
 
 /**
@@ -363,6 +342,11 @@ export default class ZoteroReadingList {
 				LABEL_NEW_ITEMS_PREF_DISABLED,
 			);
 		}
+		initialiseDefaultPref(TAG_SYNCHRONISATION_PREF, false);
+		initialiseDefaultPref(
+			TAG_SYNCHRONISATION_FORMAT_PREF,
+			TagSynchronisationFormat.ShowEmoji,
+		);
 	}
 
 	addPreferenceUpdateObservers() {
@@ -459,7 +443,9 @@ export default class ZoteroReadingList {
 					: undefined,
 				pluginID: "", //config.addonID,
 				dataProvider: (item: Zotero.Item, dataKey: string) => {
-					return item.isRegularItem() ? getItemReadStatus(item) : "";
+					return item.isRegularItem()
+						? this.getItemReadStatus(item) || ""
+						: "";
 				},
 				// if we put the icon in the dataprovider, it only gets updated when the read status changes
 				// putting the icon in the render function updates when the row is clicked or column is sorted
@@ -490,9 +476,9 @@ export default class ZoteroReadingList {
 	}
 
 	/**
-	 * Format name of status to localise text and include icon if enabled.
+	 * Format name of status to include icon if enabled.
 	 * @param {string} statusName - The name of the status.
-	 * @returns {String} values - Name of the status, possibly prefixed with the corresponding icon.
+	 * @returns {String} Name of the status, possibly prefixed with the corresponding icon.
 	 */
 	formatStatusName(statusName: string): string {
 		switch (getPref(READ_STATUS_FORMAT_PREF) as ReadStatusFormat) {
@@ -510,6 +496,27 @@ export default class ZoteroReadingList {
 				return statusIndex > -1
 					? `${this.statusIcons[statusIndex]}`
 					: statusName;
+			}
+		}
+	}
+
+	/**
+	 * Format tag to include icon if enabled.
+	 * @param {string} statusName - The name of the status.
+	 * @returns {String} Name of the status, possibly prefixed with the corresponding icon.
+	 */
+	formatTag(statusName: string): string {
+		switch (
+			getPref(TAG_SYNCHRONISATION_FORMAT_PREF) as TagSynchronisationFormat
+		) {
+			case TagSynchronisationFormat.ShowEmoji: {
+				const statusIndex = this.statusNames.indexOf(statusName);
+				return statusIndex > -1
+					? `${this.statusIcons[statusIndex]} ${statusName}`
+					: statusName;
+			}
+			case TagSynchronisationFormat.NoEmoji: {
+				return statusName;
 			}
 		}
 	}
@@ -548,7 +555,7 @@ export default class ZoteroReadingList {
 					tag: "menuitem",
 					label: getString("status-none"),
 					commandListener: (event) =>
-						void clearSelectedItemsReadStatus(),
+						void this.clearSelectedItemsReadStatus(),
 				} as MenuitemOptions,
 			].concat(
 				this.statusNames.map((status_name: string) => {
@@ -556,7 +563,7 @@ export default class ZoteroReadingList {
 						tag: "menuitem",
 						label: this.formatStatusName(status_name),
 						commandListener: (event) =>
-							setSelectedItemsReadStatus(status_name),
+							this.setSelectedItemsReadStatus(status_name),
 					};
 				}),
 			),
@@ -582,7 +589,7 @@ export default class ZoteroReadingList {
 					item.isRegularItem(),
 				);
 
-				setItemsReadStatus(
+				this.setItemsReadStatus(
 					items,
 					getPref(LABEL_NEW_ITEMS_PREF)! as string,
 				);
@@ -627,10 +634,13 @@ export default class ZoteroReadingList {
 
 				for (const item of items) {
 					const itemReadStatusIndex = statusFrom.indexOf(
-						getItemReadStatus(item),
+						this.getItemReadStatus(item) || "",
 					);
 					if (itemReadStatusIndex > -1) {
-						setItemReadStatus(item, statusTo[itemReadStatusIndex]);
+						this.setItemReadStatus(
+							item,
+							statusTo[itemReadStatusIndex],
+						);
 					}
 				}
 			}
@@ -694,7 +704,9 @@ export default class ZoteroReadingList {
 		) {
 			const shortcut = statusShortcuts[statusIndex];
 			if (shortcut && matchShortcut(shortcut)) {
-				void setSelectedItemsReadStatus(this.statusNames[statusIndex]);
+				void this.setSelectedItemsReadStatus(
+					this.statusNames[statusIndex],
+				);
 				keyboardEvent.stopPropagation();
 				return;
 			}
@@ -703,7 +715,7 @@ export default class ZoteroReadingList {
 			(getPref(CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF) as string) ?? "",
 		);
 		if (clearShortcut && matchShortcut(clearShortcut)) {
-			void clearSelectedItemsReadStatus();
+			void this.clearSelectedItemsReadStatus();
 			keyboardEvent.stopPropagation();
 		}
 	};
@@ -763,5 +775,192 @@ export default class ZoteroReadingList {
 
 	unpatchExportFunction() {
 		$unpatch$(Zotero.Utilities.Internal, "itemToExportFormat");
+	}
+
+	getItemReadStatus(item: Zotero.Item) {
+		const statusField = getItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+		return statusField.length == 1 ? statusField[0] : undefined;
+	}
+
+	setItemReadStatus(
+		item: Zotero.Item,
+		statusName: string,
+		save: boolean = true,
+	) {
+		setItemExtraProperty(item, READ_STATUS_EXTRA_FIELD, statusName);
+		setItemExtraProperty(
+			item,
+			READ_DATE_EXTRA_FIELD,
+			new Date(Date.now()).toISOString(),
+		);
+		if (getPref(TAG_SYNCHRONISATION_PREF)) {
+			this.setItemReadStatusTag(item, statusName, false);
+		}
+		if (save) {
+			void item.saveTx();
+		}
+	}
+
+	setItemReadStatusTag(
+		item: Zotero.Item,
+		statusName: string,
+		save: boolean = true,
+	) {
+		this.clearItemReadStatusTags(item);
+		item.addTag(this.formatTag(statusName), TAG_TYPE_AUTOMATIC);
+		if (save) {
+			void item.saveTx();
+		}
+	}
+
+	setItemsReadStatus(items: Zotero.Item[], statusName: string) {
+		for (const item of items) {
+			this.setItemReadStatus(item, statusName);
+		}
+	}
+
+	setSelectedItemsReadStatus(statusName: string) {
+		this.setItemsReadStatus(getSelectedItems(), statusName);
+	}
+
+	clearItemReadStatus(item: Zotero.Item) {
+		clearItemExtraProperty(item, READ_STATUS_EXTRA_FIELD);
+		clearItemExtraProperty(item, READ_DATE_EXTRA_FIELD);
+		if (getPref(TAG_SYNCHRONISATION_PREF)) {
+			this.clearItemReadStatusTags(item);
+		}
+		void item.saveTx();
+	}
+
+	clearSelectedItemsReadStatus() {
+		const items = getSelectedItems();
+		for (const item of items) {
+			this.clearItemReadStatus(item);
+		}
+	}
+
+	clearItemReadStatusTags(item: Zotero.Item) {
+		item.getTags()
+			.map((tag) => tag.tag)
+			.filter((tag) => {
+				// get first read status that is included in this tag (in case the tag has an emoji)
+				// todo: need to ensure one read status isn't a substring of another
+				for (const statusName of this.statusNames) {
+					if (tag.includes(statusName)) {
+						return true;
+					}
+				}
+				return false;
+			})
+			.forEach((tag) => item.removeTag(tag));
+	}
+
+	getItemReadStatusTags(item: Zotero.Item) {
+		return item
+			.getTags()
+			.map((tag) => tag.tag)
+			.map((tag) => {
+				// get first read status that is included in this tag (in case the tag has an emoji)
+				// todo: need to ensure one read status isn't a substring of another
+				for (const statusName of this.statusNames) {
+					if (tag.includes(statusName)) {
+						return statusName;
+					}
+				}
+				return false;
+			})
+			.filter((value) => typeof value === "string");
+	}
+
+	createProgressPopup() {
+		const progressWindow = new Zotero.ProgressWindow();
+		progressWindow.changeHeadline(getString("addon-title"));
+		return progressWindow;
+	}
+
+	// update all items' read statuses to match their tags, or clear their read status if they have no tags
+	async updateAllItemsReadStatusesToMatchTags() {
+		const progressWindow = this.createProgressPopup();
+		const allItems = (
+			await Zotero.Items.getAll(Zotero.Libraries.userLibraryID)
+		).filter((item) => item.isRegularItem());
+		const progress = new progressWindow.ItemProgress(
+			"",
+			getString("tags-to-readstatus-message-progress", {
+				args: { numItems: allItems.length },
+			}),
+		);
+		progress.setProgress(0);
+		progressWindow.show();
+		try {
+			await Zotero.DB.executeTransaction(() => {
+				for (const item of allItems) {
+					const readStatusTags = this.getItemReadStatusTags(item);
+					const currentReadStatus = this.getItemReadStatus(item);
+					const newReadStatus =
+						readStatusTags.length == 1
+							? readStatusTags[0]
+							: undefined;
+					if (newReadStatus && currentReadStatus != newReadStatus) {
+						this.setItemReadStatus(item, newReadStatus);
+					} else if (
+						newReadStatus == undefined &&
+						currentReadStatus
+					) {
+						this.clearItemReadStatus(item);
+					}
+				}
+				progress.setText(
+					getString("tags-to-readstatus-message-done", {
+						args: { numItems: allItems.length },
+					}),
+				);
+				progress.setProgress(100);
+			});
+		} catch (e) {
+			ztoolkit.log("Error updating read statuses to match tags");
+			progress.setText(getString("tags-to-readstatus-message-error"));
+			progress.setError();
+		}
+		progressWindow.startCloseTimer(3000);
+	}
+
+	// update all items' tags to match their read statuses, or clear them if they have no read status
+	async updateAllItemsTagsToMatchReadStatuses() {
+		const progressWindow = this.createProgressPopup();
+		const allItems = (
+			await Zotero.Items.getAll(Zotero.Libraries.userLibraryID)
+		).filter((item) => item.isRegularItem());
+		const progress = new progressWindow.ItemProgress(
+			"",
+			getString("readstatus-to-tags-message-progress", {
+				args: { numItems: allItems.length },
+			}),
+		);
+		try {
+			progress.setProgress(0);
+			progressWindow.show();
+
+			await Zotero.DB.executeTransaction(() => {
+				for (const item of allItems) {
+					const itemReadStatus = this.getItemReadStatus(item);
+					this.clearItemReadStatusTags(item);
+					if (itemReadStatus) {
+						this.setItemReadStatusTag(item, itemReadStatus);
+					}
+				}
+				progress.setText(
+					getString("readstatus-to-tags-message-done", {
+						args: { numItems: allItems.length },
+					}),
+				);
+				progress.setProgress(100);
+			});
+		} catch (e) {
+			ztoolkit.log("Error updating read tags to match read statuses");
+			progress.setText(getString("readstatus-to-tags-message-error"));
+			progress.setError();
+		}
+		progressWindow.startCloseTimer(3000);
 	}
 }
