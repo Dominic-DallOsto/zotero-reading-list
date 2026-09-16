@@ -43,6 +43,14 @@ export const ENABLE_KEYBOARD_SHORTCUTS_PREF = "enable-keyboard-shortcuts";
 export const STATUS_NAME_AND_ICON_LIST_PREF = "statuses-and-icons-list";
 export const STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF =
 	"status-change-on-open-item-list";
+export const KEYBOARD_SHORTCUTS_PREF = "keyboard-shortcuts";
+export const CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF =
+	"clear-status-keyboard-shortcut";
+
+export const MODIFIER_MASK_ALT = 1;
+export const MODIFIER_MASK_CTRL = 2;
+export const MODIFIER_MASK_SHIFT = 4;
+export const MODIFIER_MASK_META = 8;
 
 enum ReadStatusFormat {
 	ShowBoth = 0,
@@ -98,6 +106,152 @@ export function prefStringToList(prefString: string) {
 
 export function listToPrefString(stringList: string[], iconList: string[]) {
 	return stringList.join(";") + "|" + iconList.join(";");
+}
+
+/**
+ * Parse a stored keyboard shortcut entry ("{modifierMask}:{code}") into its
+ * modifier mask and keyboard event `code`. Returns `undefined` for malformed
+ * entries.
+ */
+export function parseShortcutEntry(
+	entry: string,
+): { mask: number; code: string } | undefined {
+	const [maskString, code] = entry.split(":");
+	const mask = Number(maskString);
+	if (Number.isInteger(mask) && mask >= 0 && code && code.length > 0) {
+		return { mask, code };
+	}
+	return undefined;
+}
+
+/**
+ * Convert a `;`-separated list of keyboard shortcut entries (one per status,
+ * in the same order as the status list) into a list of parsed shortcuts.
+ * Malformed entries are skipped.
+ */
+export function shortcutToList(
+	prefString: string,
+): Array<{ mask: number; code: string }> {
+	const shortcuts: Array<{ mask: number; code: string }> = [];
+	for (const entry of prefString.split(";")) {
+		if (!entry) {
+			continue;
+		}
+		const parsed = parseShortcutEntry(entry);
+		if (parsed) {
+			shortcuts.push(parsed);
+		}
+	}
+	return shortcuts;
+}
+
+/**
+ * Convert a list of parsed shortcuts back into a `;`-separated list of
+ * "{modifierMask}:{code}" entries.
+ */
+export function listToShortcuts(
+	shortcuts: Array<{ mask: number; code: string }>,
+): string {
+	return shortcuts
+		.map((shortcut) => `${shortcut.mask}:${shortcut.code}`)
+		.join(";");
+}
+
+/**
+ * Build the modifier bitmask (see `MODIFIER_MASK_*` constants) from a
+ * keyboard event's modifier state.
+ */
+export function parseModifierMask(
+	altKey: boolean,
+	ctrlKey: boolean,
+	shiftKey: boolean,
+	metaKey: boolean,
+): number {
+	let mask = 0;
+	if (altKey) {
+		mask |= MODIFIER_MASK_ALT;
+	}
+	if (ctrlKey) {
+		mask |= MODIFIER_MASK_CTRL;
+	}
+	if (shiftKey) {
+		mask |= MODIFIER_MASK_SHIFT;
+	}
+	if (metaKey) {
+		mask |= MODIFIER_MASK_META;
+	}
+	return mask;
+}
+
+/**
+ * Convert a keyboard event `code` (e.g. "Digit1", "KeyA", "Numpad2") into a
+ * short display name (e.g. "1", "A", "2").
+ */
+export function formatKeyCode(code: string): string {
+	if (code.startsWith("Digit")) {
+		return code.replace("Digit", "");
+	} else if (code.startsWith("Numpad")) {
+		return code.replace("Numpad", "");
+	} else if (code.startsWith("Key")) {
+		return code.replace("Key", "");
+	}
+	return code;
+}
+
+/**
+ * Format a keyboard shortcut (modifier mask + keyboard event `code`) into a
+ * human-readable string, e.g. "Alt+1" or "Ctrl+Shift+A".
+ */
+export function formatShortcut(mask: number, code: string): string {
+	const parts: string[] = [];
+	if (mask & MODIFIER_MASK_CTRL) {
+		parts.push("Ctrl");
+	}
+	if (mask & MODIFIER_MASK_SHIFT) {
+		parts.push("Shift");
+	}
+	if (mask & MODIFIER_MASK_ALT) {
+		parts.push("Alt");
+	}
+	if (mask & MODIFIER_MASK_META) {
+		parts.push("Meta");
+	}
+	parts.push(formatKeyCode(code));
+	return parts.join("+");
+}
+
+/**
+ * Whether a keyboard event's `code` should be considered a match for the given
+ * stored `code`. `Digit{n}` and `Numpad{n}` are treated as equivalent so that
+ * keyboards with a number pad keep working (see #9 #53).
+ */
+export function shortcutCodeMatches(
+	storedCode: string,
+	eventCode: string,
+): boolean {
+	return (
+		storedCode === eventCode ||
+		formatKeyCode(storedCode) == formatKeyCode(eventCode)
+	);
+}
+
+/**
+ * Default keyboard shortcuts for the given number of statuses: Alt+1, Alt+2,
+ * ... Alt+9, then Alt+A, Alt+B, ... (Alt+0 is reserved for clearing the read
+ * status).
+ */
+export function defaultShortcutsForStatusCount(statusCount: number): string {
+	const shortcuts: Array<{ mask: number; code: string }> = [];
+	for (let i = 0; i < statusCount; i++) {
+		let code: string;
+		if (i < 9) {
+			code = `${i + 1}`;
+		} else {
+			code = `${String.fromCharCode(65 + (i - 9))}`;
+		}
+		shortcuts.push({ mask: MODIFIER_MASK_ALT, code });
+	}
+	return listToShortcuts(shortcuts);
 }
 
 export default class ZoteroReadingList {
@@ -170,6 +324,14 @@ export default class ZoteroReadingList {
 		initialiseDefaultPref(
 			STATUS_NAME_AND_ICON_LIST_PREF,
 			listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
+		);
+		initialiseDefaultPref(
+			KEYBOARD_SHORTCUTS_PREF,
+			defaultShortcutsForStatusCount(DEFAULT_STATUS_NAMES.length),
+		);
+		initialiseDefaultPref(
+			CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF,
+			`${MODIFIER_MASK_ALT}:0`,
 		);
 		initialiseDefaultPref(
 			STATUS_CHANGE_ON_OPEN_ITEM_LIST_PREF,
@@ -495,32 +657,54 @@ export default class ZoteroReadingList {
 	}
 
 	keyboardEventHandler = (keyboardEvent: KeyboardEvent) => {
-		// Check modifiers - want Alt+{1,2,3,4,5} to label the currently selected items
-		// Or Alt+0 to clear the current read status
-		// Need to use keyboard event `code` instead of `key` to support different keyboard
-		// layouts, as well as fix problems with Mac #9 #53
-		const possibleKeyCombinations: Map<string, number> = new Map();
-		for (let num = 0; num < this.statusNames.length; num++) {
-			possibleKeyCombinations.set(`Digit${num + 1}`, num);
-			possibleKeyCombinations.set(`Numpad${num + 1}`, num);
-		}
-		const clearStatusKeyCombinations = ["Digit0", "Numpad0"];
+		// Check that the event isn't being fired while typing in a text input,
+		// so that shortcuts don't fire while the user is typing in the search
+		// box, a field editor, or the preferences pane.
+		const eventTarget = keyboardEvent.target as HTMLElement | null;
 		if (
-			!keyboardEvent.ctrlKey &&
-			!keyboardEvent.shiftKey &&
-			keyboardEvent.altKey
+			eventTarget &&
+			(eventTarget.isContentEditable ||
+				eventTarget.closest("input, textarea, select, option"))
 		) {
-			if (possibleKeyCombinations.has(keyboardEvent.code)) {
-				const selectedStatus =
-					this.statusNames[
-						possibleKeyCombinations.get(keyboardEvent.code)!
-					];
-				void setSelectedItemsReadStatus(selectedStatus);
-			} else if (
-				clearStatusKeyCombinations.includes(keyboardEvent.code)
-			) {
-				void clearSelectedItemsReadStatus();
+			return;
+		}
+
+		// Shortcuts are stored as a list of "{modifierMask}:{code}" entries,
+		// one per status (in the same order as the status list), plus a separate
+		// entry for clearing the read status.
+		// Need to use keyboard event `code` instead of `key` to support different
+		// keyboard layouts, as well as fix problems with Mac #9 #53
+		const eventMask = parseModifierMask(
+			keyboardEvent.altKey,
+			keyboardEvent.ctrlKey,
+			keyboardEvent.shiftKey,
+			keyboardEvent.metaKey,
+		);
+		const matchShortcut = (shortcut: { mask: number; code: string }) =>
+			shortcut.mask === eventMask &&
+			shortcutCodeMatches(shortcut.code, keyboardEvent.code);
+
+		const statusShortcuts = shortcutToList(
+			(getPref(KEYBOARD_SHORTCUTS_PREF) as string) ?? "",
+		);
+		for (
+			let statusIndex = 0;
+			statusIndex < this.statusNames.length;
+			statusIndex++
+		) {
+			const shortcut = statusShortcuts[statusIndex];
+			if (shortcut && matchShortcut(shortcut)) {
+				void setSelectedItemsReadStatus(this.statusNames[statusIndex]);
+				keyboardEvent.stopPropagation();
+				return;
 			}
+		}
+		const clearShortcut = parseShortcutEntry(
+			(getPref(CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF) as string) ?? "",
+		);
+		if (clearShortcut && matchShortcut(clearShortcut)) {
+			void clearSelectedItemsReadStatus();
+			keyboardEvent.stopPropagation();
 		}
 	};
 

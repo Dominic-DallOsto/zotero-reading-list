@@ -1,6 +1,6 @@
 pref-title = Zotero Reading List Settings
 pref-enable-keyboard-shortcuts =
-    .label = Enable keyboard shortcuts (Alt+0,1,2,3,4,5, ...). This disables Zotero's column sorting shortcuts!
+    .label = Enable keyboard shortcuts (customizable below). Note: the default keyboard shortcuts disables Zotero's column sorting shortcuts!
 pref-label-new-items =
     .label = Automatically label items as "New" when you add them to Zotero
 pref-label-items-when-opening-file = 
@@ -21,10 +21,14 @@ pref-statuslabeltable-title = Custom Reading Statuses
 pref-statuslabeltable-header-number = Number
 pref-statuslabeltable-header-statusicon = Status Icon
 pref-statuslabeltable-header-statusname = Status Name
+pref-statuslabeltable-header-shortcut = Keyboard Shortcut
+pref-statuslabeltable-clear-status = Clear Read Status
 pref-statuslabeltable-header-reorder = Reorder
 pref-statuslabeltable-button-add = Add New Status
 pref-statuslabeltable-button-save = Save
 pref-statuslabeltable-button-reset = Reset to Default
+pref-keyboard-shortcut-capture-placeholder =
+    .placeholder = Press shortcut to change
 
 pref-openitemtable-title = Custom Status Changes When Opening Item
 pref-openitemtable-header-statusfrom = Status From

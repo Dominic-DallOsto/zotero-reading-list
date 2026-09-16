@@ -4,6 +4,8 @@
 // @ts-nocheck
 export type FluentMessageId =
   | 'autolabelnewitems-disabled'
+  | 'duplicate-keyboard-shortcuts-description'
+  | 'duplicate-keyboard-shortcuts-title'
   | 'duplicate-status-names-description'
   | 'duplicate-status-names-title'
   | 'invalid-status-names-description'
@@ -12,6 +14,7 @@ export type FluentMessageId =
   | 'pref-autolabelnewitems-title'
   | 'pref-enable-keyboard-shortcuts'
   | 'pref-help'
+  | 'pref-keyboard-shortcut-capture-placeholder'
   | 'pref-label-items-when-opening-file'
   | 'pref-label-new-items'
   | 'pref-openitemtable-button-add'
@@ -29,8 +32,10 @@ export type FluentMessageId =
   | 'pref-statuslabeltable-button-add'
   | 'pref-statuslabeltable-button-reset'
   | 'pref-statuslabeltable-button-save'
+  | 'pref-statuslabeltable-clear-status'
   | 'pref-statuslabeltable-header-number'
   | 'pref-statuslabeltable-header-reorder'
+  | 'pref-statuslabeltable-header-shortcut'
   | 'pref-statuslabeltable-header-statusicon'
   | 'pref-statuslabeltable-header-statusname'
   | 'pref-statuslabeltable-title'

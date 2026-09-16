@@ -11,11 +11,23 @@ import {
 	LABEL_NEW_ITEMS_PREF_DISABLED,
 	prefStringToList,
 	listToPrefString,
+	KEYBOARD_SHORTCUTS_PREF,
+	CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF,
+	MODIFIER_MASK_ALT,
+	MODIFIER_MASK_CTRL,
+	MODIFIER_MASK_SHIFT,
+	MODIFIER_MASK_META,
+	shortcutToList,
+	parseShortcutEntry,
+	formatShortcut,
+	defaultShortcutsForStatusCount,
+	formatKeyCode,
 } from "./modules/overlay";
 import { getPref, setPref } from "./utils/prefs";
 import { getString } from "./utils/locale";
 
 const STATUS_NAMES_TABLE_BODY = "statusnames-table-body";
+const CLEAR_STATUS_SHORTCUT_INPUT = "clear-status-shortcut-input";
 const OPEN_ITEM_TABLE_BODY = "openitem-table-body";
 const OPEN_ITEM_HIDDEN_ROW = "openitem-table-hidden-row";
 const OPEN_ITEM_CHECKBOX =
@@ -24,6 +36,7 @@ const LABEL_NEW_ITEMS_MENU_LIST = "automatically-label-new-items-menulist";
 
 function onPrefsLoad(window: Window) {
 	setTableStatusNames(window);
+	setClearStatusShortcut(window);
 	setTableOpenItem(window);
 	fillAutomaticallyLabelNewItemsMenuList(window);
 }
@@ -42,6 +55,10 @@ function setTableStatusNames(window: Window) {
 	for (const row of createTableRowsStatusNames(window)) {
 		tableBodyStatusNames?.append(row);
 	}
+	const clearStatusShortcutInput = window.document.getElementById(
+		CLEAR_STATUS_SHORTCUT_INPUT,
+	) as HTMLInputElement;
+	addShortcutCaptureListeners(clearStatusShortcutInput);
 }
 
 function setTableOpenItem(window: Window) {
@@ -68,9 +85,17 @@ function setTableVisibilityOpenItem(window: Window) {
 }
 
 function addTableRowStatusNames(window: Window) {
-	window.document
-		.getElementById(STATUS_NAMES_TABLE_BODY)
-		?.append(createTableRowStatusNames(window, "", ""));
+	const tableBody = window.document.getElementById(STATUS_NAMES_TABLE_BODY);
+	// default the new row's shortcut to the "next" default shortcut
+	// (Alt+1, Alt+2, ..., Alt+9, Alt+A, ...)
+	const rowIndex = tableBody?.children.length ?? 0;
+	const defaultShortcut = shortcutToList(
+		defaultShortcutsForStatusCount(rowIndex + 1),
+	)[rowIndex];
+	const shortcutEntry = defaultShortcut
+		? `${defaultShortcut.mask}:${defaultShortcut.code}`
+		: "";
+	tableBody?.append(createTableRowStatusNames(window, "", "", shortcutEntry));
 }
 
 function addTableRowOpenItem(window: Window) {
@@ -86,11 +111,25 @@ function resetTableStatusNames(window: Window) {
 	Array.from(tableRows ?? []).map((row) => {
 		row.remove();
 	});
+	// recreate the clear status shortcut input to remove event listeners
+	const clearStatusShortcutInput = window.document.getElementById(
+		CLEAR_STATUS_SHORTCUT_INPUT,
+	) as HTMLInputElement;
+	clearStatusShortcutInput.replaceWith(
+		clearStatusShortcutInput.cloneNode(true),
+	);
+
 	setPref(
 		STATUS_NAME_AND_ICON_LIST_PREF,
 		listToPrefString(DEFAULT_STATUS_NAMES, DEFAULT_STATUS_ICONS),
 	);
+	setPref(
+		KEYBOARD_SHORTCUTS_PREF,
+		defaultShortcutsForStatusCount(DEFAULT_STATUS_NAMES.length),
+	);
+	setPref(CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF, `${MODIFIER_MASK_ALT}:Digit0`);
 	setTableStatusNames(window);
+	setClearStatusShortcut(window);
 	// if we change the statuses, need to reset the status lists here
 	resetPrefsMenu(window);
 }
@@ -124,6 +163,93 @@ function getTableStatusRows(window: Window) {
 		names.push((row.children[1].firstChild as HTMLInputElement).value);
 	}
 	return { names, icons };
+}
+
+/**
+ * Collect the "{modifierMask}:{code}" shortcut entries for all the status
+ * rows (in table order). Rows whose shortcut hasn't been captured are
+ * skipped.
+ */
+function getTableShortcutEntries(window: Window): string[] {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	const entries: string[] = [];
+	for (const row of tableRows ?? []) {
+		const input = row.children[2].firstChild as HTMLInputElement;
+		if (input.dataset.shortcutMask && input.dataset.shortcutCode) {
+			entries.push(
+				`${input.dataset.shortcutMask}:${input.dataset.shortcutCode}`,
+			);
+		}
+	}
+	return entries;
+}
+
+function getClearStatusShortcutEntry(window: Window): string | undefined {
+	const input = window.document.getElementById(
+		CLEAR_STATUS_SHORTCUT_INPUT,
+	) as HTMLInputElement | null;
+	if (input?.dataset.shortcutMask && input?.dataset.shortcutCode) {
+		return `${input.dataset.shortcutMask}:${input.dataset.shortcutCode}`;
+	}
+	return undefined;
+}
+
+function setDuplicateShortcutInputsAsInvalid(
+	window: Window,
+	duplicates: Set<string>,
+) {
+	const tableRows = window.document.getElementById(
+		STATUS_NAMES_TABLE_BODY,
+	)?.children;
+	for (const row of tableRows ?? []) {
+		const input = row.children[2].firstChild as HTMLInputElement;
+		if (
+			input.dataset.shortcutMask &&
+			input.dataset.shortcutCode &&
+			duplicates.has(
+				`${input.dataset.shortcutMask}:${input.dataset.shortcutCode}`,
+			)
+		) {
+			input.setCustomValidity("duplicate");
+		}
+	}
+	const clearInput = window.document.getElementById(
+		CLEAR_STATUS_SHORTCUT_INPUT,
+	) as HTMLInputElement | null;
+	if (
+		clearInput?.dataset.shortcutMask &&
+		clearInput?.dataset.shortcutCode &&
+		duplicates.has(
+			`${clearInput.dataset.shortcutMask}:${clearInput.dataset.shortcutCode}`,
+		)
+	) {
+		clearInput.setCustomValidity("duplicate");
+	}
+}
+
+function tableContainsInvalidShortcutInput(window: Window) {
+	const shortcuts = getTableShortcutEntries(window);
+	const clearEntry = getClearStatusShortcutEntry(window);
+	if (clearEntry) {
+		shortcuts.push(clearEntry);
+	}
+	if (new Set(shortcuts).size != shortcuts.length) {
+		const unique = new Set(shortcuts);
+		const duplicates = new Set(
+			shortcuts.filter((shortcut) => {
+				if (unique.has(shortcut)) {
+					unique.delete(shortcut);
+				} else {
+					return shortcut;
+				}
+			}),
+		);
+		setDuplicateShortcutInputsAsInvalid(window, duplicates);
+		return true;
+	}
+	return false;
 }
 
 function inputContainsForbiddenCharacters(input: HTMLInputElement) {
@@ -223,8 +349,20 @@ function saveTableStatusNames(window: Window) {
 			getString("invalid-status-names-description"),
 		);
 		return;
+	} else if (tableContainsInvalidShortcutInput(window)) {
+		Services.prompt.alert(
+			window as mozIDOMWindowProxy,
+			getString("duplicate-keyboard-shortcuts-title"),
+			getString("duplicate-keyboard-shortcuts-description"),
+		);
+		return;
 	}
 	setPref(STATUS_NAME_AND_ICON_LIST_PREF, listToPrefString(names, icons));
+	setPref(KEYBOARD_SHORTCUTS_PREF, getTableShortcutEntries(window).join(";"));
+	const clearEntry = getClearStatusShortcutEntry(window);
+	if (clearEntry) {
+		setPref(CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF, clearEntry);
+	}
 	// if we change the statuses, need to reset the status lists here
 	resetPrefsMenu(window);
 }
@@ -276,9 +414,108 @@ function createTableRowsStatusNames(window: Window) {
 	const [statusNames, statusIcons] = prefStringToList(
 		getPref(STATUS_NAME_AND_ICON_LIST_PREF) as string,
 	);
-	return statusNames.map((statusName, index) =>
-		createTableRowStatusNames(window, statusIcons[index], statusName),
+	const statusShortcuts = shortcutToList(
+		(getPref(KEYBOARD_SHORTCUTS_PREF) as string) ?? "",
 	);
+	// if the stored shortcut list is shorter than the status list, fall back
+	// to the default shortcuts for the missing entries
+	const defaultShortcuts = shortcutToList(
+		defaultShortcutsForStatusCount(statusNames.length),
+	);
+	return statusNames.map((statusName, index) => {
+		const shortcut = statusShortcuts[index] ?? defaultShortcuts[index];
+		const shortcutEntry = shortcut
+			? `${shortcut.mask}:${shortcut.code}`
+			: "";
+		return createTableRowStatusNames(
+			window,
+			statusIcons[index],
+			statusName,
+			shortcutEntry,
+		);
+	});
+}
+
+function setClearStatusShortcut(window: Window) {
+	const input = window.document.getElementById(
+		CLEAR_STATUS_SHORTCUT_INPUT,
+	) as HTMLInputElement | null;
+	if (!input) {
+		return;
+	}
+	const parsed = parseShortcutEntry(
+		(getPref(CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF) as string) ?? "",
+	);
+	if (parsed) {
+		input.value = formatShortcut(parsed.mask, parsed.code);
+		input.dataset.shortcutMask = parsed.mask.toString();
+		input.dataset.shortcutCode = parsed.code;
+	}
+}
+
+/**
+ * Create a keyboard shortcut "capture" input: the user clicks the input and
+ * presses the desired key combination, which is stored as a
+ * "{modifierMask}:{code}" entry in the `dataset` and displayed in the input
+ * value.
+ */
+function createShortcutCaptureInput(window: Window, shortcutEntry: string) {
+	const input = createElement("html:input") as HTMLInputElement;
+	input.type = "text";
+	input.setAttribute("class", "shortcut-capture");
+
+	const parsed = parseShortcutEntry(shortcutEntry);
+	if (parsed) {
+		input.value = formatShortcut(parsed.mask, parsed.code);
+		input.dataset.shortcutMask = parsed.mask.toString();
+		input.dataset.shortcutCode = parsed.code;
+	}
+	return input;
+}
+
+function addShortcutCaptureListeners(input: HTMLInputElement) {
+	input.addEventListener("keydown", (keyboardEvent: KeyboardEvent) => {
+		if (keyboardEvent.key === "Escape") {
+			// pressing Escape cancels the capture
+			keyboardEvent.preventDefault();
+			input.blur();
+			return;
+		}
+		// ignore modifier-only key presses (e.g. pressing and releasing Alt)
+		if (
+			/^(Alt|Control|Shift|Meta|OS)(Left|Right)$/.test(keyboardEvent.code)
+		) {
+			keyboardEvent.preventDefault();
+			return;
+		}
+		const mask =
+			(keyboardEvent.altKey ? MODIFIER_MASK_ALT : 0) |
+			(keyboardEvent.ctrlKey ? MODIFIER_MASK_CTRL : 0) |
+			(keyboardEvent.shiftKey ? MODIFIER_MASK_SHIFT : 0) |
+			(keyboardEvent.metaKey ? MODIFIER_MASK_META : 0);
+		const code = formatKeyCode(keyboardEvent.code);
+		input.value = formatShortcut(mask, code);
+		input.dataset.shortcutMask = mask.toString();
+		input.dataset.shortcutCode = code;
+		keyboardEvent.preventDefault();
+		keyboardEvent.stopPropagation();
+		input.blur();
+	});
+	// while focused, ask the user to enter a key combination
+	input.addEventListener("focusin", (focusEvent: FocusEvent) => {
+		input.value = getString("pref-keyboard-shortcut-capture-placeholder");
+	});
+	// set text to shortcut when losing focus
+	input.addEventListener("blur", (focusEvent: FocusEvent) => {
+		if (input.dataset.shortcutMask && input.dataset.shortcutCode) {
+			input.value = formatShortcut(
+				Number(input.dataset.shortcutMask),
+				input.dataset.shortcutCode,
+			);
+		} else {
+			input.value = "";
+		}
+	});
 }
 
 function createTableRowsOpenItem(window: Window) {
@@ -290,7 +527,12 @@ function createTableRowsOpenItem(window: Window) {
 	);
 }
 
-function createTableRowStatusNames(window: Window, icon: string, name: string) {
+function createTableRowStatusNames(
+	window: Window,
+	icon: string,
+	name: string,
+	shortcutEntry: string,
+) {
 	const row = createElement("html:tr");
 
 	const iconCell = createElement("html:td");
@@ -306,6 +548,11 @@ function createTableRowStatusNames(window: Window, icon: string, name: string) {
 	nameInput.value = name;
 	nameInput.oninput = () => validateTableRows(window);
 	nameCell.append(nameInput);
+
+	const shortcutCell = createElement("html:td");
+	const input = createShortcutCaptureInput(window, shortcutEntry);
+	addShortcutCaptureListeners(input);
+	shortcutCell.append(input);
 
 	const settings = createElement("html:td");
 	const upButton = createElement("html:button");
@@ -329,6 +576,7 @@ function createTableRowStatusNames(window: Window, icon: string, name: string) {
 
 	row.append(iconCell);
 	row.append(nameCell);
+	row.append(shortcutCell);
 	row.append(settings);
 	return row;
 }

@@ -1,7 +1,7 @@
 /* Normally need to restart Zotero for these to take effect */
 
 /* Add, save, reset buttons */
-table > button {
+#pref-statuslabeltable-buttons > button {
 	margin: 5px;
 }
 
@@ -10,11 +10,33 @@ td > button {
 	margin-left: 2px;
 	margin-right: 2px;
 	font-size: 120%;
+	line-height: 20px;
+	padding-left: 8px;
+	padding-right: 8px;
 }
 
 table th {
 	text-align: left;
 	margin-left: 6px;
+}
+
+#pref-statuslabeltable-header-statusicon,
+#pref-statuslabeltable-header-statusname {
+	width: 100px;
+}
+
+#pref-statuslabeltable-header-shortcut,
+#pref-statuslabeltable-header-reorder {
+	width: 120px;
+}
+
+td input {
+	width: 100px;
+}
+
+/* keyboard shortcut capture inputs */
+.shortcut-capture {
+	width: 140px;
 }
 
 input:invalid {

@@ -34,23 +34,41 @@
 		<html:table>
 			<html:thead>
 				<html:tr>
-					<html:th data-l10n-id="pref-statuslabeltable-header-statusicon"></html:th>
-					<html:th data-l10n-id="pref-statuslabeltable-header-statusname"></html:th>
-					<html:th data-l10n-id="pref-statuslabeltable-header-reorder"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-statusicon"
+						id="pref-statuslabeltable-header-statusicon"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-statusname"
+						id="pref-statuslabeltable-header-statusname"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-shortcut"
+						id="pref-statuslabeltable-header-shortcut"></html:th>
+					<html:th data-l10n-id="pref-statuslabeltable-header-reorder"
+						id="pref-statuslabeltable-header-reorder"></html:th>
 				</html:tr>
 			</html:thead>
 			<html:tbody id="statusnames-table-body"> </html:tbody>
+			<!-- fixed row: shortcut for clearing the read status of items -->
+			<html:tbody id="statusnames-clear-status-body">
+				<html:tr>
+					<html:td colspan="2">
+						<html:label data-l10n-id="pref-statuslabeltable-clear-status"></html:label>
+					</html:td>
+					<html:td>
+						<html:input id="clear-status-shortcut-input" type="text" class="shortcut-capture" />
+					</html:td>
+					<html:td> </html:td>
+				</html:tr>
+			</html:tbody>
+		</html:table>
+		<div id="pref-statuslabeltable-buttons">
 			<html:button id="statusnames-save-add"
 				onclick="Zotero.__addonInstance__.prefsMenu.addTableRowStatusNames(window)"
 				data-l10n-id="pref-statuslabeltable-button-add" />
-			<br />
 			<html:button id="statusnames-save-button"
 				onclick="Zotero.__addonInstance__.prefsMenu.saveTableStatusNames(window)"
 				data-l10n-id="pref-statuslabeltable-button-save" />
 			<html:button id="statusnames-reset-button"
 				onclick="Zotero.__addonInstance__.prefsMenu.resetTableStatusNames(window)"
 				data-l10n-id="pref-statuslabeltable-button-reset" />
-		</html:table>
+		</div>
 	</groupbox>
 
 	<!-- Auto change statuses when opening items -->
