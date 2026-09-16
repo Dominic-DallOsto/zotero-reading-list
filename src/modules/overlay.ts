@@ -704,7 +704,9 @@ export default class ZoteroReadingList {
 		) {
 			const shortcut = statusShortcuts[statusIndex];
 			if (shortcut && matchShortcut(shortcut)) {
-				void setSelectedItemsReadStatus(this.statusNames[statusIndex]);
+				void this.setSelectedItemsReadStatus(
+					this.statusNames[statusIndex],
+				);
 				keyboardEvent.stopPropagation();
 				return;
 			}
@@ -713,7 +715,7 @@ export default class ZoteroReadingList {
 			(getPref(CLEAR_STATUS_KEYBOARD_SHORTCUT_PREF) as string) ?? "",
 		);
 		if (clearShortcut && matchShortcut(clearShortcut)) {
-			void clearSelectedItemsReadStatus();
+			void this.clearSelectedItemsReadStatus();
 			keyboardEvent.stopPropagation();
 		}
 	};
