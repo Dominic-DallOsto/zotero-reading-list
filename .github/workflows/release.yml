@@ -69,7 +69,7 @@ jobs:
 
             - name: release
               run: |
-                  npm run release -- --no-increment --no-git --github.release --ci --VV
+                  npm run release -- --no-increment --no-git --github.release --ci -VV
                   sleep 1s
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
