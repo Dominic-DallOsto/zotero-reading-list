@@ -8,7 +8,7 @@ hbox>button {
 }
 
 /* Up, down, delete buttons in rows */
-td>button {
+td > button {
 	margin-left: 2px;
 	margin-right: 2px;
 	font-size: 120%;
