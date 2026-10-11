@@ -532,13 +532,16 @@ export default class ZoteroReadingList {
 
 	addPreferencesMenu() {
 		const prefOptions = {
+			id: config.addonID,
 			pluginID: config.addonID,
 			src: rootURI + "chrome/content/preferences.xhtml",
 			label: getString("prefs-title"),
 			image: `chrome://${config.addonRef}/content/icons/favicon.png`,
 			defaultXUL: true,
 		};
-		void Zotero.PreferencePanes.register(prefOptions);
+		void Zotero.PreferencePanes.register(prefOptions).catch((e) => {
+			ztoolkit.log(`Failed to register preferences pane: ${e}`);
+		});
 	}
 
 	removePreferenceMenu() {
