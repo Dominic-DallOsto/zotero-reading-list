@@ -570,9 +570,10 @@ export default class ZoteroReadingList {
 					},
 					menus: [
 						{
-							menuType: "menuitem",
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+							menuType: "menuitem" as any,
 							l10nID: getLocaleID("read-status-none"),
-							onCommand: (event, context) =>
+							onCommand: (event: Event, context: any) =>
 								void this.clearSelectedItemsReadStatus(),
 						},
 					].concat(
@@ -585,7 +586,7 @@ export default class ZoteroReadingList {
 								l10nArgs: {
 									title: this.formatStatusName(statusName),
 								},
-								onCommand: (event, context) =>
+								onCommand: (event: Event, context: any) =>
 									void this.setSelectedItemsReadStatus(
 										statusName,
 									),
@@ -595,31 +596,6 @@ export default class ZoteroReadingList {
 				},
 			],
 		});
-		// ztoolkit.Menu.register("item", {
-		// 	id: "zotero-reading-list-right-click-item-menu",
-		// 	tag: "menu",
-		// 	label: getString("menupopup-label"),
-		// 	children: [
-		// 		{
-		// 			tag: "menuitem",
-		// 			label: getString("status-none"),
-		// 			commandListener: (event) =>
-		// 				void this.clearSelectedItemsReadStatus(),
-		// 		} as MenuitemOptions,
-		// 	].concat(
-		// 		this.statusNames.map((status_name: string) => {
-		// 			return {
-		// 				tag: "menuitem",
-		// 				label: this.formatStatusName(status_name),
-		// 				commandListener: (event) =>
-		// 					this.setSelectedItemsReadStatus(status_name),
-		// 			};
-		// 		}),
-		// 	),
-		// 	getVisibility: (element, event) => {
-		// 		return getSelectedItems().length > 0;
-		// 	},
-		// });
 	}
 
 	removeRightClickMenu() {

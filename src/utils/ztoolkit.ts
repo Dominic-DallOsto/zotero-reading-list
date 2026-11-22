@@ -1,7 +1,6 @@
 import {
 	BasicTool,
 	makeHelperTool,
-	MenuManager,
 	ProgressWindowHelper,
 	UITool,
 	unregister,
@@ -38,13 +37,11 @@ function initZToolkit(_ztoolkit: ReturnType<typeof createZToolkit>) {
 
 class MyToolkit extends BasicTool {
 	UI: UITool;
-	Menu: MenuManager;
 	ProgressWindow: typeof ProgressWindowHelper;
 
 	constructor() {
 		super();
 		this.UI = new UITool(this);
-		this.Menu = new MenuManager(this);
 		this.ProgressWindow = makeHelperTool(ProgressWindowHelper, this);
 	}
 

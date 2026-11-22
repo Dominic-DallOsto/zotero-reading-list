@@ -1,5 +1,4 @@
-import { ColumnOptions } from "zotero-plugin-toolkit/dist/helpers/virtualizedTable";
-import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
+import { ColumnOptions, DialogHelper } from "zotero-plugin-toolkit";
 import hooks from "./hooks";
 import prefsMenu from "./prefs-menu";
 import ZoteroReadingList from "./modules/overlay";
