@@ -1,12 +1,11 @@
 addon-title = Zotero Reading List
-menupopup-label = Read Status
 read-status = Read Status
-status-none = None
-status-new = New
-status-to_read = To Read
-status-in_progress = In Progress
-status-read = Read
-status-not_reading = Not Reading
+read-status-menu-name = 
+    .label= Read Status
+read-status-name-placeholder =
+    .label={$title}
+read-status-none =
+    .label=None
 prefs-title = Reading List
 
 duplicate-status-names-title = Duplicate Custom Reading Statuses

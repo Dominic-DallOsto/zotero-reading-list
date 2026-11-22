@@ -1,6 +1,5 @@
-import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { config } from "../../package.json";
-import { getString } from "../utils/locale";
+import { getLocaleID, getString } from "../utils/locale";
 import { patch as $patch$, unpatch as $unpatch$ } from "../utils/patcher";
 import {
 	getPref,
@@ -240,12 +239,19 @@ export default class ZoteroReadingList {
 	preferenceUpdateObservers?: symbol[];
 	statusNames: string[];
 	statusIcons: string[];
+	rightClickMenuID?: string | false;
 
 	constructor() {
 		this.initialiseDefaultPreferences();
 		[this.statusNames, this.statusIcons] = prefStringToList(
 			getPref(STATUS_NAME_AND_ICON_LIST_PREF)! as string,
 		);
+
+		// Use Fluent for localization
+		// As mentioned in https://groups.google.com/g/zotero-dev/c/wirqnj_EQUQ/m/ud3k0SpMAAAJ
+		// As seen in https://github.com/zotero/make-it-red/blob/5a7ee1be2f147a327220c1e5a4129d6c6169999c/src-2.0/make-it-red.js#L33
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+		window.MozXULElement.insertFTLIfNeeded("zotero-reading-list-addon.ftl");
 
 		this.addReadStatusColumn();
 		this.addPreferencesMenu();
@@ -549,35 +555,77 @@ export default class ZoteroReadingList {
 	}
 
 	addRightClickMenuPopup() {
-		ztoolkit.Menu.register("item", {
-			id: "zotero-reading-list-right-click-item-menu",
-			tag: "menu",
-			label: getString("menupopup-label"),
-			children: [
+		this.rightClickMenuID = Zotero.MenuManager.registerMenu({
+			menuID: "zotero-reading-list-right-click-item-menu",
+			pluginID: config.addonID,
+			target: "main/library/item",
+			menus: [
 				{
-					tag: "menuitem",
-					label: getString("status-none"),
-					commandListener: (event) =>
-						void this.clearSelectedItemsReadStatus(),
-				} as MenuitemOptions,
-			].concat(
-				this.statusNames.map((status_name: string) => {
-					return {
-						tag: "menuitem",
-						label: this.formatStatusName(status_name),
-						commandListener: (event) =>
-							this.setSelectedItemsReadStatus(status_name),
-					};
-				}),
-			),
-			getVisibility: (element, event) => {
-				return getSelectedItems().length > 0;
-			},
+					menuType: "submenu",
+					l10nID: getLocaleID("read-status-menu-name"),
+					l10nArgs: { title: "Read Status" },
+					icon: `chrome://${config.addonRef}/content/icons/favicon.png`,
+					onShowing(event, context) {
+						context.setVisible(getSelectedItems().length > 0);
+					},
+					menus: [
+						{
+							menuType: "menuitem",
+							l10nID: getLocaleID("read-status-none"),
+							onCommand: (event, context) =>
+								void this.clearSelectedItemsReadStatus(),
+						},
+					].concat(
+						this.statusNames.map((statusName: string) => {
+							return {
+								menuType: "menuitem",
+								l10nID: getLocaleID(
+									"read-status-name-placeholder",
+								),
+								l10nArgs: {
+									title: this.formatStatusName(statusName),
+								},
+								onCommand: (event, context) =>
+									void this.setSelectedItemsReadStatus(
+										statusName,
+									),
+							};
+						}),
+					),
+				},
+			],
 		});
+		// ztoolkit.Menu.register("item", {
+		// 	id: "zotero-reading-list-right-click-item-menu",
+		// 	tag: "menu",
+		// 	label: getString("menupopup-label"),
+		// 	children: [
+		// 		{
+		// 			tag: "menuitem",
+		// 			label: getString("status-none"),
+		// 			commandListener: (event) =>
+		// 				void this.clearSelectedItemsReadStatus(),
+		// 		} as MenuitemOptions,
+		// 	].concat(
+		// 		this.statusNames.map((status_name: string) => {
+		// 			return {
+		// 				tag: "menuitem",
+		// 				label: this.formatStatusName(status_name),
+		// 				commandListener: (event) =>
+		// 					this.setSelectedItemsReadStatus(status_name),
+		// 			};
+		// 		}),
+		// 	),
+		// 	getVisibility: (element, event) => {
+		// 		return getSelectedItems().length > 0;
+		// 	},
+		// });
 	}
 
 	removeRightClickMenu() {
-		ztoolkit.Menu.unregister("zotero-reading-list-right-click-item-menu");
+		if (this.rightClickMenuID) {
+			Zotero.MenuManager.unregisterMenu(this.rightClickMenuID);
+		}
 	}
 
 	addNewItemLabeller() {
