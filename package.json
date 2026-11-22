@@ -42,7 +42,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"prettier": "^3.6.2",
 		"release-it": "^21.0.3",
-		"replace-in-file": "^8.3.0",
+		"replace-in-file": "^9.0.0",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.38.0",
 		"zotero-plugin-scaffold": "^0.9.4",
